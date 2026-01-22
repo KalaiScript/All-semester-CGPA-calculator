@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator | SGPA Master</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="theme-color" content="#2f80ed">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <a href="index.html" style="color: var(--text-muted); font-size: 1.5rem;">
+                <!-- Back Arrow Icon -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </a>
+            <div style="text-align: right;">
+                <span id="semester-badge"
+                    style="background-color: var(--card-bg); border: 1px solid var(--primary-color); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; color: var(--primary-color);">Semester
+                    3</span>
+            </div>
+        </div>
+
+        <h3
+            style="color: var(--primary-color); margin-bottom: 15px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+            Semester Subjects</h3>
+
+        <!-- Dynamic Subject List -->
+        <div id="subject-list">
+            <!-- Subjects will be injected here by script.js -->
+        </div>
+
+        <!-- Previous Stats Toggle -->
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="background-color: rgba(47, 128, 237, 0.2); padding: 8px; border-radius: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
+                        stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 0.95rem;">Previous Stats</h4>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Previous calculated SGPA</span>
+                </div>
+            </div>
+            <!-- Toggle Switch -->
+            <label class="switch">
+                <input type="checkbox" id="prev-stats-toggle" onchange="togglePrevStats()">
+                <span class="slider"></span>
+                <span class="slider-knob"></span>
+            </label>
+        </div>
+
+        <!-- Previous Stats Inputs (Hidden by default) -->
+        <div id="prev-stats-inputs" class="card" style="display: none; animation: slideDown 0.3s ease;">
+            <div style="display: flex; gap: 15px;">
+                <div style="flex: 1;">
+                    <label
+                        style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Total
+                        Credits</label>
+                    <input type="number" id="prev-credits" placeholder="e.g. 45" readonly>
+                </div>
+                <div style="flex: 1;">
+                    <label
+                        style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Previous
+                        SGPA</label>
+                    <input type="number" id="prev-cgpa" placeholder="e.g. 8.52" step="0.01" readonly>
+                </div>
+            </div>
+            <div id="prev-stats-info"
+                style="font-size: 0.7rem; color: var(--accent-green); margin-top: 10px; text-align: center; font-weight: 500; opacity: 0.9;">
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="card"
+            style="background: linear-gradient(135deg, rgba(22, 27, 34, 0.9), rgba(47, 128, 237, 0.1)); text-align: center; padding: 30px 20px;">
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">Estimated Semester SGPA</p>
+            <h1 id="result-sgpa" style="font-size: 3.5rem; margin: 0; line-height: 1;">0.00</h1>
+
+            <div
+                style="display: flex; justify-content: center; gap: 30px; margin-top: 20px; border-top: 1px solid var(--glass-border); padding-top: 15px;">
+                <div>
+                    <span style="display: block; font-size: 0.8rem; color: var(--text-muted);">Total Credits</span>
+                    <strong id="total-credits-display"
+                        style="color: var(--primary-color); font-size: 1.2rem;">0</strong>
+                </div>
+                <div>
+                    <span style="display: block; font-size: 0.8rem; color: var(--text-muted);">Maximum SGPA</span>
+                    <strong style="color: var(--accent-green); font-size: 1.2rem;">10.00</strong>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary"
+                style="font-size: 0.8rem; width: 100%; justify-content: center; margin-top: 20px;"
+                onclick="openModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="margin-right: 5px;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Calculate Button -->
+    <button class="btn btn-primary"
+        style="margin-bottom: 30px; max-width: 440px; margin-left: auto; margin-right: auto; display: block;"
+        onclick="calculateGPA()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="margin-right: 8px;">
+            <path d="M12 2v20"></path>
+            <path d="M2 12h20"></path>
+        </svg>
+        Calculate Result
+    </button>
+
+    </div>
+
+    <!-- Student Details Modal -->
+    <div id="student-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Enter Details</h2>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 22px;">
+                    <label
+                        style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Student
+                        Name</label>
+                    <input type="text" id="pdf-student-name" placeholder="e.g. Kalaiyarasan"
+                        oninput="this.style.borderColor=''" style="padding: 14px;">
+                </div>
+                <div>
+                    <label
+                        style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Roll
+                        Number</label>
+                    <input type="text" id="pdf-roll-no" placeholder="e.g. 24CS100" oninput="this.style.borderColor=''"
+                        style="padding: 14px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-download" onclick="confirmDownload()">Download PDF</button>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Hidden Report Template for PDF Generation -->
+    <div id="report-template"
+        style="position: absolute; left: -9999px; top: 0; background: white; color: black; padding: 25px; font-family: 'Inter', sans-serif; width: 750px; line-height: 1.4; box-sizing: border-box;">
+
+        <!-- Header Section -->
+        <div style="margin-bottom: 15px; display: flex; justify-content: flex-start; gap: 30px; flex-wrap: wrap;">
+            <p style="margin: 0; font-size: 0.95rem;"><span style="font-weight: 700;">Name:</span> <span
+                    id="report-student-name"></span></p>
+            <p style="margin: 0; font-size: 0.95rem;"><span style="font-weight: 700;">Roll No:</span> <span
+                    id="report-roll-no"></span></p>
+            <p style="margin: 0; font-size: 0.95rem;"><span style="font-weight: 700;">Date:</span> <span
+                    id="report-date"></span></p>
+        </div>
+
+        <div style="border-top: 2px solid #000; margin-bottom: 12px;"></div>
+
+        <!-- Title -->
+        <h2 style="margin: 0 0 12px 0; font-size: 1.3rem; font-weight: 700; color: #1e3a8a;">SEMESTER SUBJECTS</h2>
+
+        <!-- Table -->
+        <div style="border: 2px solid #1e3a8a; border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #1e3a8a;">
+                        <th
+                            style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #ffffff; text-transform: uppercase; width: 60%;">
+                            SUBJECT NAME</th>
+                        <th
+                            style="padding: 10px 12px; text-align: center; font-size: 0.75rem; font-weight: 700; color: #ffffff; text-transform: uppercase; width: 20%;">
+                            CREDITS</th>
+                        <th
+                            style="padding: 10px 12px; text-align: center; font-size: 0.75rem; font-weight: 700; color: #ffffff; text-transform: uppercase; width: 20%;">
+                            GRADE</th>
+                    </tr>
+                </thead>
+                <tbody id="report-table-body" style="font-size: 0.9rem; color: #111;">
+                    <!-- Rows injected by script -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Result Breakdown Box -->
+        <div
+            style="border: 2px solid #1e3a8a; border-radius: 8px; overflow: hidden; margin-top: 20px; background-color: #fff;">
+            <!-- Result Header Bar -->
+            <div style="background: #1e3a8a; padding: 12px 20px;">
+                <h3
+                    style="margin: 0; font-size: 1rem; font-weight: 700; color: #ffffff; text-align: center; text-transform: uppercase; letter-spacing: 1px;">
+                    FINAL RESULT</h3>
+            </div>
+
+            <!-- Result Content -->
+            <div style="background: #e8eef5; padding: 20px;">
+                <div style="display: flex; gap: 40px; justify-content: space-around;">
+                    <div style="text-align: center;">
+                        <label
+                            style="display: block; font-size: 0.75rem; color: #1e3a8a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">TOTAL
+                            CREDITS</label>
+                        <strong id="report-total-credits"
+                            style="font-size: 1.6rem; font-weight: 800; color: #000;">0</strong>
+                    </div>
+                    <div style="text-align: center;">
+                        <label
+                            style="display: block; font-size: 0.75rem; color: #1e3a8a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">SGPA</label>
+                        <strong id="report-final-gpa"
+                            style="font-size: 1.6rem; font-weight: 800; color: #000;">0.00</strong>
+                    </div>
+                    <div style="text-align: center;">
+                        <label
+                            style="display: block; font-size: 0.75rem; color: #1e3a8a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">PERCENTAGE</label>
+                        <strong id="report-percentage"
+                            style="font-size: 1.6rem; font-weight: 800; color: #000;">0.00%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

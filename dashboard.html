@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Manager | CGPA Master</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="theme-color" content="#2f80ed">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <a href="admin.html" style="color: var(--text-muted);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </a>
+            <div style="text-align: center;">
+                <h2 style="margin: 0; font-size: 1.1rem;">Subject Manager</h2>
+            </div>
+            <a href="index.html" style="color: var(--text-muted);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Add/Edit Form -->
+        <div class="card">
+            <h3 style="margin-bottom: 15px; font-size: 1rem;" id="form-title">Add New Subject</h3>
+            <input type="hidden" id="edit-index" value="-1">
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Subject Name / Code</label>
+                <input type="text" id="new-subj-name" placeholder="e.g. Professional English (HS3151)">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Credit Value</label>
+                <select id="new-subj-credit">
+                    <option value="1">1 Credit</option>
+                    <option value="2">2 Credits</option>
+                    <option value="3" selected>3 Credits</option>
+                    <option value="4">4 Credits</option>
+                    <option value="12">12 Credits</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Semester</label>
+                <select id="new-subj-sem" onchange="loadAdminSubjects()">
+                    <option value="" disabled selected>Select Semester</option>
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                    <option value="3">Semester 3</option>
+                    <option value="4">Semester 4</option>
+                    <option value="5">Semester 5</option>
+                    <option value="6">Semester 6</option>
+                    <option value="7">Semester 7</option>
+                    <option value="8">Semester 8</option>
+                </select>
+            </div>
+
+            <button id="save-btn" class="btn btn-primary" onclick="saveSubject()">
+                Add to Registry
+            </button>
+            <button id="cancel-btn" class="btn" onclick="resetForm()"
+                style="display: none; background: transparent; border: 1px solid var(--border-color); margin-top: 10px;">
+                Cancel Edit
+            </button>
+        </div>
+
+        <!-- List Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-size: 1rem;">Managing Semester <span id="current-view-sem">3</span></h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);" id="subject-count">0 Subjects</span>
+        </div>
+
+        <!-- Dynamic List -->
+        <div id="admin-subject-list" style="display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px;">
+            <!-- Rendered via JS -->
+        </div>
+
+    </div>
+
+    <!-- Load script.js first to get access to getSubjects and saveSemesterSubjects -->
+    <script src="script.js"></script>
+
+    <script>
+        // Auth Check
+        if (localStorage.getItem('isAdmin') !== 'true') {
+            window.location.href = 'admin.html';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAdminSubjects();
+        });
+
+        // 1. Render Subjects
+        function loadAdminSubjects() {
+            const sem = document.getElementById('new-subj-sem').value;
+            const container = document.getElementById('admin-subject-list');
+
+            if (!sem) {
+                container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: 12px;">Please select a semester above to view and manage subjects.</div>';
+                document.getElementById('current-view-sem').textContent = "...";
+                document.getElementById('subject-count').textContent = "";
+                return;
+            }
+
+            document.getElementById('current-view-sem').textContent = sem;
+
+            // Disable "Add" button for Semester 8
+            const saveBtn = document.getElementById('save-btn');
+            if (sem == 8) {
+                saveBtn.disabled = true;
+                saveBtn.style.opacity = "0.5";
+                saveBtn.style.cursor = "not-allowed";
+                saveBtn.innerText = "Semester 8 is Static";
+            } else {
+                saveBtn.disabled = false;
+                saveBtn.style.opacity = "1";
+                saveBtn.style.cursor = "pointer";
+                saveBtn.innerText = document.getElementById('edit-index').value >= 0 ? "Update Subject" : "Add to Registry";
+            }
+
+            // Use helper from script.js
+            const subjects = getSubjects(sem);
+            document.getElementById('subject-count').textContent = `${subjects.length} Subjects`;
+
+            container.innerHTML = '';
+
+            if (subjects.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">No subjects found.</div>';
+                return;
+            }
+
+            subjects.forEach((subj, index) => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                div.style.padding = '15px';
+
+                div.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="background-color: var(--card-hover); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: bold; font-size: 0.9rem; color: var(--primary-color);">${subj.credit}</span>
+                        <div>
+                            <h4 style="margin: 0; font-size: 0.9rem;">${subj.name}</h4>
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">${subj.code || 'CODE'}</span>
+                        </div>
+                    </div>
+                    ${sem == 8 ? '' : `
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="editSubject(${index})" style="background: none; border: none; color: var(--text-muted); cursor: pointer;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <button onclick="deleteSubject(${index})" style="background: none; border: none; color: #ff5252; cursor: pointer;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>`}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 2. Save (Add or Update)
+        function saveSubject() {
+            const sem = document.getElementById('new-subj-sem').value;
+            const name = document.getElementById('new-subj-name').value;
+            const credit = parseInt(document.getElementById('new-subj-credit').value);
+            const index = parseInt(document.getElementById('edit-index').value);
+
+            if (!sem) {
+                alert("Please select a semester first.");
+                return;
+            }
+
+            if (!name) {
+                alert("Please enter a subject name.");
+                return;
+            }
+
+            let subjects = getSubjects(sem);
+
+            const newSubj = {
+                name: name,
+                credit: credit,
+                code: name.substring(0, 2).toUpperCase() + 'XXX', // Simple Code Gen
+                sem: parseInt(sem)
+            };
+
+            if (index >= 0) {
+                // Update existing
+                subjects[index] = newSubj;
+                alert("Subject updated!");
+            } else {
+                // Add new
+                subjects.push(newSubj);
+                alert("Subject added!");
+            }
+
+            // Save via helper
+            saveSemesterSubjects(sem, subjects);
+
+            // Reset and Reload
+            resetForm();
+            loadAdminSubjects();
+        }
+
+        // 3. Edit Trigger
+        function editSubject(index) {
+            const sem = document.getElementById('new-subj-sem').value;
+            const subjects = getSubjects(sem);
+            const subj = subjects[index];
+
+            document.getElementById('new-subj-name').value = subj.name;
+            document.getElementById('new-subj-credit').value = subj.credit;
+
+            document.getElementById('edit-index').value = index;
+            document.getElementById('form-title').textContent = "Edit Subject";
+            document.getElementById('save-btn').textContent = "Update Subject";
+            document.getElementById('cancel-btn').style.display = 'inline-block';
+
+            window.scrollTo(0, 0);
+        }
+
+        // 4. Delete Trigger
+        function deleteSubject(index) {
+            if (confirm("Are you sure you want to delete this subject?")) {
+                const sem = document.getElementById('new-subj-sem').value;
+                let subjects = getSubjects(sem);
+
+                subjects.splice(index, 1);
+
+                // Save changes
+                saveSemesterSubjects(sem, subjects);
+                loadAdminSubjects();
+            }
+        }
+
+        // 5. Reset Form
+        function resetForm() {
+            document.getElementById('new-subj-name').value = '';
+            document.getElementById('new-subj-credit').value = '3';
+            document.getElementById('edit-index').value = '-1';
+
+            document.getElementById('form-title').textContent = "Add New Subject";
+            document.getElementById('save-btn').textContent = "Add to Registry";
+            document.getElementById('cancel-btn').style.display = 'none';
+        }
+
+    </script>
+</body>
+
+</html>

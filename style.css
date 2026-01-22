@@ -1,0 +1,335 @@
+:root {
+    --bg-color: #0a0e17;
+    --card-bg: #161b22;
+    --card-hover: #1f2630;
+    --primary-color: #2f80ed;
+    --secondary-color: #6c757d;
+    --text-main: #ffffff;
+    --text-muted: #8b949e;
+    --accent-purple: #bb86fc;
+    --accent-green: #00c853;
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --font-family: 'Inter', sans-serif;
+    --border-radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Hide native browser password reveal buttons */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}
+
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    position: absolute;
+    right: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Container */
+.container {
+    max-width: 480px;
+    /* Mobile-first/App-like feel */
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+}
+
+/* Glassmorphism Card Style */
+.card {
+    background: rgba(22, 27, 34, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Headers */
+h1,
+h2,
+h3 {
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+h1.page-title {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    background: linear-gradient(90deg, #2f80ed, #bb86fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    border: none;
+    font-size: 1rem;
+    width: 100%;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #276ac4;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
+/* Form Elements */
+input,
+select {
+    width: 100%;
+    padding: 12px;
+    background-color: #0d1117;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+/* Hide Spinners */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--primary-color);
+}
+
+input[readonly] {
+    background-color: #0d1117;
+    border-color: var(--glass-border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+input[readonly]:focus {
+    border-color: var(--glass-border);
+    box-shadow: none;
+}
+
+/* Toggle Switch Styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider-knob {
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--accent-green) !important;
+}
+
+input:checked+.slider+.slider-knob {
+    transform: translateX(20px);
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 2px var(--primary-color);
+}
+
+input:checked:focus+.slider {
+    box-shadow: 0 0 2px var(--accent-green);
+}
+
+/* Grid for Landing Page */
+.sem-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.sem-btn {
+    background-color: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    padding: 20px;
+    text-align: center;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.sem-btn:hover {
+    background-color: var(--card-hover);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, #1a1f2e, #161b22);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 420px;
+    padding: 35px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    animation: modalPop 0.3s ease-out;
+}
+
+@keyframes modalPop {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    margin-bottom: 25px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.modal-body {
+    margin-bottom: 25px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 2px solid rgba(255, 82, 82, 0.5);
+    color: #ff5252;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 82, 82, 0.15);
+    border-color: #ff5252;
+    transform: translateY(-1px);
+}
+
+.btn-download {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    border: none;
+    box-shadow: 0 4px 15px rgba(47, 128, 237, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-download:hover {
+    background: #276ac4;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(47, 128, 237, 0.4);
+}

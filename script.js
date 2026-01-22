@@ -1,0 +1,521 @@
+/**
+ * CGPA Calculator - Core Logic
+ */
+
+// Data: Subjects for each semester
+const subjectData = {
+    1: [
+        { name: "ENGINEERING PHYSICS", credit: 3, code: "23BSS01" },
+        { name: "PHYSICS LABORATORY", credit: 2, code: "23BSS02" },
+        { name: "ALGEBRA AND CALCULUS", credit: 4, code: "23BSS21" },
+        { name: "PROGRAMMING FOR PROBLEM SOLVING USING C", credit: 3, code: "23GES01" },
+        { name: "PROGRAMMING IN C LABORATORY", credit: 1, code: "23GES02" },
+        { name: "ELECTRICAL AND ELECTRONICS SCIENCES", credit: 3, code: "23GES06" },
+        { name: "TECHNICAL AND COMMUNICATIVE ENGLISH I", credit: 3, code: "23HSS01" },
+        { name: "HERITAGE OF TAMILS", credit: 1, code: "23HSS08" }
+    ],
+    2: [
+        { name: "ENGINEERING CHEMISTRY", credit: 3, code: "23BSS11" },
+        { name: "CHEMISTRY LABORATORY", credit: 2, code: "23BSS12" },
+        { name: "ADVANCED CALCULUS AND COMPLEX ANALYSIS", credit: 4, code: "23BSS22" },
+        { name: "PYTHON PROGRAMMING", credit: 3, code: "23GES03" },
+        { name: "COMPUTER  PERIPHERALS AND PROGRAMMING ESSENTIALS", credit: 3, code: "23GES04" },
+        { name: "PYTHON PROGRAMMING LABORATORY", credit: 1, code: "23GES05" },
+        { name: "TECHNICAL AND COMMUNICATIVE ENGLISH II", credit: 3, code: "23HSS02" },
+        { name: "TAMILS AND TECHNOLOGY", credit: 1, code: "23HSS09" },
+    ],
+    3: [
+        { name: "DISCRETE MATHEMATICS", credit: 4, code: "23BSS25", type: "Basic Sciences" },
+        { name: "DATA STRUCTURES AND ALGORITHMS", credit: 3, code: "23CSF01", type: "Professional Core" },
+        { name: "OBJECT ORIENTED PROGRAMMING WITH JAVA", credit: 3, code: "23CSF02", type: "Professional Core" },
+        { name: "DATA STRUCTURES USING JAVA LABORATORY", credit: 1, code: "23CSF03", type: "Professional Core" },
+        { name: "DATABASE MANAGEMENT SYSTEMS", credit: 3, code: "23CSF04", type: "Professional Core" },
+        { name: "DATABASE MANAGEMENT SYSTEMS LABORATORY", credit: 1, code: "23CSF05", type: "Professional Core" },
+        { name: "SOFTWARE ENGINEERING", credit: 3, code: "23CSF06", type: "Professional Core" },
+        { name: "OPERATING SYSTEMS", credit: 3, code: "23CSF12", type: "Professional Core" },
+        { name: "OPERATING SYSTEMS LABORATORY", credit: 1, code: "23CSF13", type: "Professional Core" }
+    ],
+    4: [
+        { name: "PROBABILITY AND STATISTICS", credit: 4, code: "23BSS32", type: "Basic Sciences" },
+        { name: "COMPUTER NETWORKS", credit: 3, code: "23CSF07", type: "Professional Core" },
+        { name: "DESIGN AND ANALYSIS OF ALGORITHMS", credit: 3, code: "23CSF10", type: "Professional Core" },
+        { name: "COMPUTER ORGANIZATION AND ARCHITECTURE", credit: 3, code: "23CSF11", type: "Professional Core" },
+        { name: "COMPUTER NETWORKS LABORATORY", credit: 1, code: "23CSF24", type: "Professional Core" },
+        { name: "CAREER DEVELOPMENT SKILL - I", credit: 1, code: "23BSS30", type: "Basic Sciences" },
+        { name: "WEB DEVELOPMENT", credit: 3, code: "23CSF40", type: "Professional Core" },
+        { name: "WEB DEVELOPMENT LABORATORY", credit: 1, code: "23CSF41", type: "Professional Core" },
+        { name: "FOUNDATIONS OF DATA SCIENCE", credit: 3, code: "23CSE67", type: "Professional Elective" },
+        { name: "DATA SCIENCE LABORATORY", credit: 1, code: "23CSE68", type: "Professional Elective" },
+    ],
+    5: [
+        { name: "CAREER DEVELOPMENT SKILL - II", credit: 1, code: "23BSS31", type: "Basic Sciences" },
+        { name: "INTERNET OF THINGS", credit: 3, code: "23CSE01", type: "Professional Core" },
+        { name: "INTERNET OF THINGS LABORATORY", credit: 1, code: "23CSE02", type: "Professional Core" },
+        { name: "SALESFORCE CRM AND PLATFORM", credit: 3, code: "23CSE06", type: "Professional Core" },
+        { name: "SALESFORCE CRM AND PLATFORM LABORATORY", credit: 1, code: "23CSE07", type: "Professional Core" },
+        { name: "COMPUTER NETWORKS", credit: 3, code: "23CSF07", type: "Professional Core" },
+        { name: "DATA WAREHOUSING AND DATA MINING", credit: 3, code: "23CSF18", type: "Professional Core" },
+        { name: "COMPUTER NETWORKS LABORATORY", credit: 1, code: "23CSF24", type: "Professional Core" },
+        { name: "FOUNDATIONS OF QUANTUM COMPUTING", credit: 3, code: "23CSF39", type: "Professional Core" },
+
+
+    ],
+    6: [
+        { name: "RENEWABLE ENERGY SOURCES", credit: 3, code: "23GES29", type: "Professional Core" },
+        { name: "COMPILER DESIGN", credit: 3, code: "23CSF19", type: "Professional Core" },
+        { name: "COMPILER DESIGN LABORATORY", credit: 1, code: "23CSF20", type: "Professional Core" },
+        { name: "VIRTUAL REALITY AND AUGMENTED REALITY", credit: 3, code: "23CSF19", type: "Professional Core" },
+        { name: "VIRTUAL REALITY AND AUGMENTED REALITY LABORATORY", credit: 1, code: "23CSF20", type: "Professional Core" },
+        { name: "OBJECT ORIENTED ANALYSIS AND DESIGN", credit: 3, code: "23CSF21", type: "Professional Core" },
+        { name: "CLOUD COMPUTING", credit: 3, code: "23CSF22", type: "Professional Core" },
+        { name: "PROFESSIONAL ELECTIVE - II", credit: 3, code: "...", type: "Professional Elective" },
+        { name: "MINI PROJECT (Case Tools)", credit: 1, code: "23CSP03", type: "Employability Enhancement Courses" },
+
+    ],
+    7: [{ name: "Cloud Computing", credit: 3, code: "23CSE09" }],
+    8: [
+        { name: "Project Work Phase - II", credit: 12, code: "23CSP05", type: "Employability Enhancement Courses" }
+    ]
+};
+
+// Grade Points Mapping
+const gradePoints = { "O": 10, "A+": 9, "A": 8, "B+": 7, "B": 6, "C": 5, "U": 0 };
+
+// Global State
+let currentSem = 1;
+
+// Navigation
+function selectSemester(sem) {
+    window.location.href = `calculator.html?sem=${sem}`;
+}
+
+// Helper: Get Subjects (LS Override > Default + Custom Legacy)
+function getSubjects(sem) {
+    // 0. Static Override for Semester 8 (Lock to 12-credit Project)
+    if (sem == 8) {
+        return subjectData[8];
+    }
+
+    // 1. Check for full semester override (if user has edited/deleted items via Admin)
+    const override = localStorage.getItem(`subjects_sem_${sem}`);
+    if (override) {
+        return JSON.parse(override);
+    }
+
+    // 2. Else use Default Data
+    let subjects = subjectData[sem] ? [...subjectData[sem]] : [];
+
+    // 3. Merge with 'custom_subjects' (Legacy add method support)
+    const custom = JSON.parse(localStorage.getItem('custom_subjects') || '[]');
+    const customForSem = custom.filter(s => s.sem == sem);
+
+    // Create a combined list (simple merge, duplicates allowed if names match since we don't have IDs)
+    return [...subjects, ...customForSem];
+}
+
+// Helper: Save Semester Data (Used by Admin Dashboard)
+function saveSemesterSubjects(sem, subjects) {
+    localStorage.setItem(`subjects_sem_${sem}`, JSON.stringify(subjects));
+}
+
+// Initialization
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if we are on calculator.html
+    const params = new URLSearchParams(window.location.search);
+    const semParam = params.get('sem');
+
+    if (semParam && document.getElementById('subject-list')) {
+        currentSem = parseInt(semParam);
+        loadSubjects(currentSem);
+        document.getElementById('semester-badge').textContent = `Semester ${currentSem}`;
+    }
+
+    // Update Home Page Stats
+    if (document.getElementById('total-cgpa-display')) {
+        updateHomePageStats();
+    }
+
+    const toggle = document.getElementById('prev-stats-toggle');
+    if (toggle) toggle.checked = false;
+});
+
+// Load Subjects
+function loadSubjects(sem) {
+    const listContainer = document.getElementById('subject-list');
+    const subjects = getSubjects(sem);
+
+    listContainer.innerHTML = '';
+
+    if (subjects.length === 0) {
+        listContainer.innerHTML = '<p style="text-align:center; color: var(--text-muted);">No subjects found for this semester.</p>';
+        return;
+    }
+
+    subjects.forEach((subj) => {
+        const card = document.createElement('div');
+        card.className = 'card subject-card';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.gap = '10px';
+
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h4 class="subject-name" style="margin: 0; font-size: 1rem;">${subj.name}</h4>
+                    <span class="subject-credits" style="font-size: 0.75rem; color: var(--text-muted);">${subj.credit} Credits • ${subj.type || 'Core'}</span>
+                </div>
+                <span class="subject-code" style="background-color: rgba(47, 128, 237, 0.1); color: var(--primary-color); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;">${subj.code || 'CODE'}</span>
+            </div>
+            
+            <select class="grade-select" data-credit="${subj.credit}" onchange="this.style.borderColor='var(--glass-border)'">
+                <option value="0" disabled selected>Select Grade</option>
+                <option value="10">O </option>
+                <option value="9">A+ </option>
+                <option value="8">A </option>
+                <option value="7">B+ </option>
+                <option value="6">B </option>
+                <option value="5">C </option>
+                <option value="0">U </option>
+            </select>
+        `;
+        listContainer.appendChild(card);
+    });
+}
+
+// Toggle Previous Stats
+function togglePrevStats() {
+    const isChecked = document.getElementById('prev-stats-toggle').checked;
+    document.getElementById('prev-stats-inputs').style.display = isChecked ? 'block' : 'none';
+
+    if (isChecked) {
+        // Pre-fill from history - show only the LATEST calculation
+        const history = JSON.parse(localStorage.getItem('gpa_history') || '[]');
+        const currentNum = Number(currentSem);
+
+        // Filter out current semester and find the latest calculation
+        const otherSemesters = history.filter(item => Number(item.sem) !== currentNum);
+
+        const creditsInput = document.getElementById('prev-credits');
+        const cgpaInput = document.getElementById('prev-cgpa');
+        const info = document.getElementById('prev-stats-info');
+
+        if (otherSemesters.length > 0) {
+            // Sort by timestamp and get the most recent one
+            otherSemesters.sort((a, b) => b.timestamp - a.timestamp);
+            const latestCalc = otherSemesters[0];
+
+            // Get credits for the latest semester
+            const semSubjects = getSubjects(latestCalc.sem);
+            const semCredits = semSubjects.reduce((sum, subj) => sum + subj.credit, 0);
+
+            creditsInput.value = semCredits;
+            cgpaInput.value = parseFloat(latestCalc.result).toFixed(2);
+
+            // Show which semester this is from
+            if (info) {
+                info.textContent = `Latest calculation from Semester ${latestCalc.sem}`;
+                info.style.color = "var(--accent-green)";
+            }
+        } else {
+            creditsInput.value = "";
+            cgpaInput.value = "";
+            if (info) {
+                info.textContent = "No previous semester data found.";
+                info.style.color = "var(--text-muted)";
+            }
+        }
+    }
+}
+
+// Calculate GPA
+function calculateGPA() {
+    const creditInputs = document.querySelectorAll('.grade-select');
+    let totalCredits = 0;
+    let totalPoints = 0;
+    let allFilled = true;
+    let firstMissing = null;
+    creditInputs.forEach(input => {
+        // Reset styles first
+        input.style.borderColor = "var(--glass-border)";
+
+        if (input.value === "0" && input.options[input.selectedIndex].text === "Select Grade") {
+            allFilled = false;
+            input.style.borderColor = "#ff5252"; // Highlight missing field
+            if (!firstMissing) firstMissing = input;
+        }
+    });
+
+    // 2. Enforce All-Filled Rule
+    if (!allFilled) {
+        if (firstMissing) {
+            firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstMissing.focus();
+        }
+        // Reset Display if not complete
+        document.getElementById('result-sgpa').textContent = "0.00";
+        document.getElementById('result-cgpa').textContent = "0.00";
+        document.getElementById('total-credits-display').textContent = "0";
+        return;
+    }
+
+    // 3. Calculation Loop (Only runs if allFilled is true)
+    creditInputs.forEach(input => {
+        const credit = parseFloat(input.getAttribute('data-credit'));
+        const point = parseFloat(input.value);
+
+        totalCredits += credit;
+        totalPoints += (point * credit);
+    });
+
+    const sgpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
+    document.getElementById('result-sgpa').textContent = sgpa;
+    document.getElementById('total-credits-display').textContent = totalCredits;
+
+    // CGPA Calculation
+    const usePrev = document.getElementById('prev-stats-toggle') ? document.getElementById('prev-stats-toggle').checked : false;
+    let finalResult = sgpa;
+    let type = "SGPA";
+
+    if (usePrev) {
+        const prevCredits = parseFloat(document.getElementById('prev-credits').value) || 0;
+        const prevCGPA = parseFloat(document.getElementById('prev-cgpa').value) || 0;
+        const prevPoints = prevCredits * prevCGPA;
+        const finalCredits = totalCredits + prevCredits;
+        const finalPoints = totalPoints + prevPoints;
+        const cgpa = finalCredits > 0 ? (finalPoints / finalCredits).toFixed(2) : "0.00";
+        if (document.getElementById('result-cgpa')) document.getElementById('result-cgpa').textContent = cgpa;
+        finalResult = cgpa;
+        type = "CGPA";
+    } else {
+        if (document.getElementById('result-cgpa')) document.getElementById('result-cgpa').textContent = sgpa;
+    }
+
+    // Save Cumulative Credits for CGPA, otherwise Semester Credits for SGPA
+    const savedCredits = (type === "CGPA") ? (totalCredits + (parseFloat(document.getElementById('prev-credits').value) || 0)) : totalCredits;
+    saveToHistory(currentSem, finalResult, type, savedCredits);
+}
+
+// History
+function saveToHistory(sem, result, type, credits) {
+    const now = new Date();
+    const historyItem = {
+        date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        sem: sem, result: result, type: type, credits: credits, timestamp: Date.now()
+    };
+    let history = JSON.parse(localStorage.getItem('gpa_history') || '[]');
+    history.unshift(historyItem);
+    if (history.length > 50) history.pop();
+    localStorage.setItem('gpa_history', JSON.stringify(history));
+}
+
+function renderHistory() {
+    const listContainer = document.getElementById('history-list');
+    if (!listContainer) return;
+    let history = JSON.parse(localStorage.getItem('gpa_history') || '[]');
+
+    if (history.length === 0) {
+        listContainer.innerHTML = '<div class="card" style="text-align: center; color: var(--text-muted); padding: 40px;"><p>No calculations yet.</p></div>';
+        return;
+    }
+
+    listContainer.innerHTML = '';
+    history.forEach(item => {
+        const sem = Number(item.sem);
+        let regulation = "2023";
+        if (sem <= 2) regulation = "2025";
+        else if (sem >= 7) regulation = "2021";
+
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.style.padding = '20px';
+        div.innerHTML = `
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 5px;">${item.date} • ${item.time || ''}</span>
+                <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-main);">Semester ${item.sem} • Regulation ${regulation}</h3>
+                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                     <span style="font-size: 0.7rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">${item.credits || 0} Credits</span>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <h2 style="margin: 0; font-size: 1.5rem; color: var(--primary-color);">${item.result}</h2>
+                <span style="font-size: 0.7rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">${item.type} / 10.0</span>
+            </div>
+        `;
+        listContainer.appendChild(div);
+    });
+}
+
+function clearHistory() {
+    if (confirm('Clear all history logs?')) {
+        localStorage.removeItem('gpa_history');
+        renderHistory();
+    }
+}
+
+// Home Page Stats
+function updateHomePageStats() {
+    const display = document.getElementById('total-cgpa-display');
+    if (!display) return;
+
+    let history = JSON.parse(localStorage.getItem('gpa_history') || '[]');
+    if (history.length === 0) {
+        display.textContent = "0.00";
+        return;
+    }
+
+    // Group by Semester and take the LATEST result for each
+    const semesterMap = {};
+    history.forEach(item => {
+        if (!semesterMap[item.sem] || item.timestamp > semesterMap[item.sem].timestamp) {
+            semesterMap[item.sem] = item;
+        }
+    });
+
+    const entries = Object.values(semesterMap);
+    const sum = entries.reduce((acc, curr) => acc + parseFloat(curr.result), 0);
+    const average = (sum / entries.length).toFixed(2);
+
+    display.textContent = average;
+}
+
+// Other Utilities
+function openModal() {
+    const sgpa = document.getElementById('result-sgpa').textContent;
+    const totalCredits = document.getElementById('total-credits-display').textContent;
+
+    if (totalCredits === "0" || sgpa === "0.00") {
+        alert("Please calculate your GPA first before downloading the report.");
+        return;
+    }
+    document.getElementById('student-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('student-modal').style.display = 'none';
+}
+
+function confirmDownload() {
+    const nameInput = document.getElementById('pdf-student-name');
+    const rollInput = document.getElementById('pdf-roll-no');
+
+    const studentName = nameInput.value.trim();
+    const rollNo = rollInput.value.trim();
+
+    if (!studentName) {
+        alert("Please enter Student Name.");
+        nameInput.focus();
+        nameInput.style.borderColor = "#ff5252";
+        return;
+    }
+    if (!rollNo) {
+        alert("Please enter Roll Number.");
+        rollInput.focus();
+        rollInput.style.borderColor = "#ff5252";
+        return;
+    }
+
+    closeModal();
+    downloadReport(studentName, rollNo);
+}
+
+function downloadReport(studentName, rollNo) {
+    const semBadge = document.getElementById('semester-badge');
+    if (!semBadge) return;
+
+    const sem = semBadge.textContent.replace('Semester ', '').trim();
+    const sgpa = document.getElementById('result-sgpa').textContent;
+    const totalCredits = document.getElementById('total-credits-display').textContent;
+
+    // 1. Determine Regulation
+    let regulation = "2023";
+    if (sem <= 2) regulation = "2025";
+    else if (sem >= 7) regulation = "2021";
+
+    // 2. Map Grades/Subjects from DOM
+    const subjectItems = document.querySelectorAll('.subject-card');
+    let tableHtml = '';
+
+    subjectItems.forEach((item, index) => {
+        const name = item.querySelector('.subject-name').textContent;
+        const code = item.querySelector('.subject-code').textContent;
+        const subtitle = item.querySelector('.subject-credits').textContent;
+        const credit = subtitle.split(' ')[0];
+        const gradeSelect = item.querySelector('.grade-select');
+        const gradeText = gradeSelect.options[gradeSelect.selectedIndex].text.trim();
+
+        // Alternating row colors: white for odd rows, light blue-gray for even rows
+        const bgColor = index % 2 === 0 ? '#ffffff' : '#e8eef5';
+
+        tableHtml += `
+            <tr style="background-color: ${bgColor};">
+                <td style="padding: 10px 12px; text-align: left; color: #000; vertical-align: middle; width: 60%;">${name}</td>
+                <td style="padding: 10px 12px; text-align: center; color: #000; vertical-align: middle; width: 20%;">${credit}</td>
+                <td style="padding: 10px 12px; text-align: center; font-weight: 800; color: #000; vertical-align: middle; width: 20%;">${gradeText}</td>
+            </tr>
+        `;
+    });
+
+    const today = new Date();
+    const dateStr = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+
+    // Percentage Calculation
+    const percentage = (parseFloat(sgpa) * 9.5).toFixed(2);
+
+    document.getElementById('report-student-name').textContent = studentName;
+    document.getElementById('report-roll-no').textContent = rollNo;
+    document.getElementById('report-date').textContent = dateStr;
+    document.getElementById('report-table-body').innerHTML = tableHtml;
+    document.getElementById('report-total-credits').textContent = totalCredits;
+    document.getElementById('report-final-gpa').textContent = sgpa;
+    document.getElementById('report-percentage').textContent = percentage + '%';
+
+    // 4. Generate PDF
+    const element = document.getElementById('report-template');
+
+    // Temporarily bring it into view for capture to avoid blank PDF issues
+    const originalStyle = element.style.cssText;
+    element.style.cssText = "position: relative; left: 0; top: 0; background: white; color: black; padding: 25px; font-family: 'Inter', sans-serif; width: 750px; line-height: 1.4; display: block; box-sizing: border-box;";
+
+    const opt = {
+        margin: [5, 5, 5, 5],
+        filename: `${studentName.replace(/\s+/g, '_')}_GPA_Report.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+            scale: 1.8,
+            useCORS: true,
+            letterRendering: true,
+            scrollX: 0,
+            scrollY: 0
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Restore original off-screen style
+        element.style.cssText = originalStyle;
+    });
+}
+function resetApp() {
+    if (confirm('Are you sure you want to reset all data?')) {
+        localStorage.clear();
+        alert('Data cleared!');
+        location.reload();
+    }
+}
+
+// Legacy Admin Add (Modified to use new persistence if needed, but keeping for compatibility)
+// We will now rely on dashboard.html calling specific logic, but we can keep this for now.
+function addCustomSubject(sem, name, credit, code) {
+    // Determine current list state
+    let subjects = getSubjects(sem);
+    const newSubj = { name, credit: parseInt(credit), code: code || 'CUSTOM', sem: parseInt(sem) };
+    subjects.push(newSubj);
+
+    // Save as override
+    saveSemesterSubjects(sem, subjects);
+    return true;
+}

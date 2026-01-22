@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGPA Calculator </title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="theme-color" content="#2f80ed">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Main Card -->
+        <div class="card" style="margin-top: 50px;">
+            <div class="header-bg" style="text-align: center; margin-bottom: 2rem;">
+                <h1 class="page-title" style="margin-bottom: 0.5rem;">CGPA Calculator</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Select your semester to begin</p>
+            </div>
+
+            <!-- Semester Grid -->
+            <div class="sem-grid">
+                <button class="sem-btn" onclick="selectSemester(1)">1st Sem</button>
+                <button class="sem-btn" onclick="selectSemester(2)">2nd Sem</button>
+                <button class="sem-btn" onclick="selectSemester(3)">3rd Sem</button>
+                <button class="sem-btn" onclick="selectSemester(4)">4th Sem</button>
+                <button class="sem-btn" onclick="selectSemester(5)">5th Sem</button>
+                <button class="sem-btn" onclick="selectSemester(6)">6th Sem</button>
+                <button class="sem-btn" onclick="selectSemester(7)">7th Sem</button>
+                <button class="sem-btn" onclick="selectSemester(8)">8th Sem</button>
+            </div>
+
+            <!-- Total CGPA Section (Optional Quick Calc) -->
+            <div style="margin-top: 30px; border-top: 1px solid var(--glass-border); padding-top: 20px;">
+                <h3 style="color: var(--primary-color); margin-bottom: 15px;">Total CGPA</h3>
+                <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+                    <span style="font-size: 1.2rem; font-weight: bold; color: var(--text-main);">Final Score = </span>
+                    <span id="total-cgpa-display"
+                        style="font-size: 1.5rem; font-weight: bold; color: var(--accent-green);">0.00</span>
+                    <span style="font-size: 1rem; color: var(--text-muted); margin-left: 4px;">/ 10.00</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="window.location.href='history.html'">View History</button>
+                    <button class="btn btn-secondary"
+                        style="border-color: var(--primary-color); color: var(--primary-color);"
+                        onclick="resetApp()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
