@@ -447,14 +447,16 @@ function downloadReport(studentName, rollNo) {
         const gradeSelect = item.querySelector('.grade-select');
         const gradeText = gradeSelect.options[gradeSelect.selectedIndex].text.trim();
 
-        // Alternating row colors: white for odd rows, light blue-gray for even rows
-        const bgColor = index % 2 === 0 ? '#ffffff' : '#e8eef5';
+        // Plain white background for all rows
+        const bgColor = '#ffffff';
+        // Add bottom border for divider look
+        const borderStyle = 'border-bottom: 1px solid #eee;';
 
         tableHtml += `
-            <tr style="background-color: ${bgColor};">
-                <td style="padding: 10px 12px; text-align: left; color: #000; vertical-align: middle; width: 60%;">${name}</td>
-                <td style="padding: 10px 12px; text-align: center; color: #000; vertical-align: middle; width: 20%;">${credit}</td>
-                <td style="padding: 10px 12px; text-align: center; font-weight: 800; color: #000; vertical-align: middle; width: 20%;">${gradeText}</td>
+            <tr style="background-color: ${bgColor}; ${borderStyle}">
+                <td style="padding: 12px 15px; text-align: left; color: #333; vertical-align: middle; font-weight: 500;">${code}</td>
+                <td style="padding: 12px 15px; text-align: left; color: #333; vertical-align: middle; text-transform: uppercase;">${name}</td>
+                <td style="padding: 12px 15px; text-align: left; font-weight: 600; color: #333; vertical-align: middle;">${gradeText}</td>
             </tr>
         `;
     });

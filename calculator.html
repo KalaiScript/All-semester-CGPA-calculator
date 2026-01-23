@@ -171,34 +171,40 @@
         style="position: absolute; left: -9999px; top: 0; background: white; color: black; padding: 25px; font-family: 'Inter', sans-serif; width: 750px; line-height: 1.4; box-sizing: border-box;">
 
         <!-- Header Section -->
-        <div style="margin-bottom: 15px; display: flex; justify-content: flex-start; gap: 30px; flex-wrap: wrap;">
-            <p style="margin: 0; font-size: 0.95rem;"><span style="font-weight: 700;">Name:</span> <span
-                    id="report-student-name"></span></p>
-            <p style="margin: 0; font-size: 0.95rem;"><span style="font-weight: 700;">Roll No:</span> <span
-                    id="report-roll-no"></span></p>
-            <p style="margin: 0; font-size: 0.95rem;"><span style="font-weight: 700;">Date:</span> <span
-                    id="report-date"></span></p>
+        <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <p style="margin: 0; font-size: 0.95rem;"><span
+                    style="font-weight: 700; width: 100px; display: inline-block;">Name:</span> <span
+                    id="report-student-name" style="font-weight: 500;"></span></p>
+            <p style="margin: 0; font-size: 0.95rem;"><span
+                    style="font-weight: 700; width: 100px; display: inline-block;">Roll No:</span> <span
+                    id="report-roll-no" style="font-weight: 500;"></span></p>
+            <p style="margin: 0; font-size: 0.95rem;"><span
+                    style="font-weight: 700; width: 100px; display: inline-block;">Branch:</span> <span
+                    style="font-weight: 500;">Computer Science and Engineering</span></p>
+            <p style="margin: 0; font-size: 0.95rem;"><span
+                    style="font-weight: 700; width: 100px; display: inline-block;">Date:</span> <span id="report-date"
+                    style="font-weight: 500;"></span></p>
         </div>
 
         <div style="border-top: 2px solid #000; margin-bottom: 12px;"></div>
 
         <!-- Title -->
-        <h2 style="margin: 0 0 12px 0; font-size: 1.3rem; font-weight: 700; color: #1e3a8a;">SEMESTER SUBJECTS</h2>
+        <h2 style="margin: 0 0 12px 0; font-size: 1.3rem; font-weight: 700; color: #01040e;">SEMESTER SUBJECTS</h2>
 
         <!-- Table -->
         <div style="border: 2px solid #1e3a8a; border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="background: #1e3a8a;">
+                    <tr style="background: #1c1c1c;">
                         <th
-                            style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #ffffff; text-transform: uppercase; width: 60%;">
-                            SUBJECT NAME</th>
+                            style="padding: 12px 15px; text-align: left; font-size: 0.8rem; font-weight: 600; color: #ffffff; width: 20%;">
+                            Course Code</th>
                         <th
-                            style="padding: 10px 12px; text-align: center; font-size: 0.75rem; font-weight: 700; color: #ffffff; text-transform: uppercase; width: 20%;">
-                            CREDITS</th>
+                            style="padding: 12px 15px; text-align: left; font-size: 0.8rem; font-weight: 600; color: #ffffff; width: 60%;">
+                            Course Name</th>
                         <th
-                            style="padding: 10px 12px; text-align: center; font-size: 0.75rem; font-weight: 700; color: #ffffff; text-transform: uppercase; width: 20%;">
-                            GRADE</th>
+                            style="padding: 12px 15px; text-align: left; font-size: 0.8rem; font-weight: 600; color: #ffffff; width: 20%;">
+                            Letter Grade</th>
                     </tr>
                 </thead>
                 <tbody id="report-table-body" style="font-size: 0.9rem; color: #111;">
