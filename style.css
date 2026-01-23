@@ -258,6 +258,20 @@ input:checked:focus+.slider {
     transform: scale(0.98);
 }
 
+/* Prevent sticky focus on mobile */
+.sem-btn:focus {
+    outline: none;
+    border-color: var(--glass-border);
+    background-color: var(--card-bg);
+    transform: none;
+}
+
+/* Restore for keyboard users */
+.sem-btn:focus-visible {
+    border-color: var(--primary-color);
+    background-color: var(--card-hover);
+}
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
@@ -412,7 +426,7 @@ input:checked:focus+.slider {
 
     /* Reduce calculate button width on mobile */
     #calculate-btn {
-        width: 100% !important;
+        width: 93% !important;
         max-width: none !important;
     }
 
