@@ -15,6 +15,12 @@
 <body>
 
     <div class="container">
+        <script>
+            // Auth Check
+            if (!sessionStorage.getItem('res_user')) {
+                window.location.href = 'login.html';
+            }
+        </script>
         <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <a href="index.html" style="color: var(--text-muted); font-size: 1.5rem;">
@@ -156,6 +162,33 @@
                     <input type="text" id="pdf-roll-no" placeholder="e.g. 24CS100" oninput="this.style.borderColor=''"
                         style="padding: 14px;">
                 </div>
+                <div style="display: flex; gap: 15px; margin-top: 22px;">
+                    <div style="flex: 1;">
+                        <label
+                            style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Year</label>
+                        <select id="pdf-student-year" onchange="this.style.borderColor='var(--glass-border)'"
+                            style="padding: 14px; width: 100%; border: 1px solid var(--glass-border); background: var(--card-bg); color: var(--text-main); border-radius: 8px;">
+                            <option value="">Select Year</option>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label
+                            style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Section</label>
+                        <select id="pdf-student-section" onchange="this.style.borderColor='var(--glass-border)'"
+                            style="padding: 14px; width: 100%; border: 1px solid var(--glass-border); background: var(--card-bg); color: var(--text-main); border-radius: 8px;">
+                            <option value="">Select Section</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
@@ -252,7 +285,7 @@
 
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 
 </html>

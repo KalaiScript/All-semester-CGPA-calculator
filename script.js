@@ -1,3 +1,74 @@
+import { saveResultToFirebase, getStudentResults } from './firebase-config.js';
+
+// ... (existing code) ...
+
+// Sync History from Firebase
+async function syncFirebaseHistory() {
+    const userSession = sessionStorage.getItem('res_user');
+    if (!userSession) return;
+
+    const user = JSON.parse(userSession);
+    const onlineHistory = await getStudentResults(user.rollNo);
+
+    if (onlineHistory && onlineHistory.length > 0) {
+        let localHistory = JSON.parse(localStorage.getItem('gpa_history') || '[]');
+        const clearedAt = parseInt(localStorage.getItem('history_cleared_at') || '0');
+
+        onlineHistory.forEach(remoteItem => {
+            // Respect local clear: Don't sync items older than the clear action
+            if (remoteItem.timestamp && remoteItem.timestamp <= clearedAt) {
+                return;
+            }
+
+            const exists = localHistory.find(local => local.sem == remoteItem.sem);
+            if (!exists) {
+                localHistory.push(remoteItem);
+            } else {
+                // Update if remote is newer? Or just strictly trust remote?
+                // Let's update existing to ensure consistency
+                Object.assign(exists, remoteItem);
+            }
+        });
+
+        // Sort by sem descending or timestamp
+        localHistory.sort((a, b) => b.sem - a.sem);
+
+        localStorage.setItem('gpa_history', JSON.stringify(localHistory));
+
+        // Refresh display if on history page
+        if (document.getElementById('history-list')) {
+            renderHistory();
+        }
+        // Refresh home stats
+        if (document.getElementById('total-cgpa-display')) {
+            updateHomePageStats();
+        }
+    }
+}
+
+// Initialization
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if we are on calculator.html
+    const params = new URLSearchParams(window.location.search);
+    const semParam = params.get('sem');
+
+    if (semParam && document.getElementById('subject-list')) {
+        currentSem = parseInt(semParam);
+        loadSubjects(currentSem);
+        document.getElementById('semester-badge').textContent = `Semester ${currentSem}`;
+    }
+
+    // Trigger Sync
+    syncFirebaseHistory();
+
+    // Update Home Page Stats
+    if (document.getElementById('total-cgpa-display')) {
+        updateHomePageStats();
+    }
+
+    const toggle = document.getElementById('prev-stats-toggle');
+    if (toggle) toggle.checked = false;
+});
 /**
  * CGPA Calculator - Core Logic
  */
@@ -287,6 +358,39 @@ function performCalculation() {
     const savedCredits = (type === "CGPA") ? (totalCredits + (parseFloat(document.getElementById('prev-credits').value) || 0)) : totalCredits;
     saveToHistory(currentSem, finalResult, type, savedCredits);
 
+    // Save to Firebase (Online Sync)
+    // Save to Firebase (Online Sync)
+    const userSession = sessionStorage.getItem('res_user');
+
+    // Determine target rollNo: Priority to Input (from modal) > Logged In User
+    // However, studentDetails might be empty if modal wasn't used/needed?
+    // Wait, calculation flow forces modal via submitDetailsAndCalculate if performCalculation is called?
+    // Actually performCalculation is called by submitDetailsAndCalculate, so studentDetails SHOULD be set.
+
+    let targetRollNo = "";
+    if (studentDetails && studentDetails.rollNo) {
+        targetRollNo = studentDetails.rollNo;
+    } else if (userSession) {
+        targetRollNo = JSON.parse(userSession).rollNo;
+    }
+
+    if (targetRollNo) {
+        // We calculate CGPA differently in the helper, but passing what we have is good
+        let sgpaToSend = sgpa;
+        let cgpaToSend = (type === "CGPA") ? finalResult : sgpa; // Rough approx for now
+
+        console.log(`Saving result for RollNo: ${targetRollNo}, Sem: ${currentSem}`);
+        saveResultToFirebase(
+            targetRollNo,
+            currentSem,
+            sgpaToSend,
+            cgpaToSend,
+            savedCredits,
+            studentDetails.year,
+            studentDetails.section
+        );
+    }
+
     // Scroll to result
     document.querySelector('.card:has(#result-sgpa)').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -373,6 +477,41 @@ function validateStudentDetails() {
     // Store details
     studentDetails.name = name;
     studentDetails.rollNo = roll;
+    const yearInput = document.getElementById('pdf-student-year');
+    const sectionInput = document.getElementById('pdf-student-section');
+    const year = yearInput.value;
+    const section = sectionInput.value;
+
+    if (!name) {
+        alert("Please enter Student Name.");
+        nameInput.focus();
+        nameInput.style.borderColor = "#ff5252";
+        return false;
+    }
+    if (!roll) {
+        alert("Please enter Roll Number.");
+        rollInput.focus();
+        rollInput.style.borderColor = "#ff5252";
+        return false;
+    }
+    if (!year) {
+        alert("Please select your Year.");
+        yearInput.focus();
+        yearInput.style.borderColor = "#ff5252";
+        return false;
+    }
+    if (!section) {
+        alert("Please select your Section.");
+        sectionInput.focus();
+        sectionInput.style.borderColor = "#ff5252";
+        return false;
+    }
+
+    // Store details
+    studentDetails.name = name;
+    studentDetails.rollNo = roll;
+    studentDetails.year = year;
+    studentDetails.section = section;
     return true;
 }
 
@@ -442,10 +581,18 @@ function generatePDF(studentName, rollNo) {
 // History
 function saveToHistory(sem, result, type, credits) {
     const now = new Date();
+    // Get current user for binding
+    const userSession = sessionStorage.getItem('res_user');
+    const rollNo = userSession ? JSON.parse(userSession).rollNo : 'anonymous';
+
     const historyItem = {
         date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        sem: sem, result: result, type: type, credits: credits, timestamp: Date.now()
+        sem: sem, result: result, type: type, credits: credits, timestamp: Date.now(),
+        rollNo: studentDetails.rollNo || rollNo, // Prefer input rollNo, fallback to session
+        name: studentDetails.name || '',
+        year: studentDetails.year || '',
+        section: studentDetails.section || ''
     };
     let history = JSON.parse(localStorage.getItem('gpa_history') || '[]');
     history.unshift(historyItem);
@@ -456,17 +603,31 @@ function saveToHistory(sem, result, type, credits) {
 function renderHistory() {
     const listContainer = document.getElementById('history-list');
     if (!listContainer) return;
+
+    // Filter by current user
+    const userSession = sessionStorage.getItem('res_user');
+    const currentUser = userSession ? JSON.parse(userSession).rollNo : null;
+
     let history = JSON.parse(localStorage.getItem('gpa_history') || '[]');
 
-    if (history.length === 0) {
+    // Use legacy items (no rollNo) if user is not logged in, or strictly match if logged in
+    const filteredHistory = history.filter(item => {
+        return true; // Show all history on device for transparency
+        // if (!currentUser) return true; 
+        // if (!item.rollNo) return true; 
+        // return item.rollNo === currentUser;
+    });
+
+    if (filteredHistory.length === 0) {
         listContainer.innerHTML = '<div class="card" style="text-align: center; color: var(--text-muted); padding: 40px;"><p>No calculations yet.</p></div>';
         return;
     }
 
     listContainer.innerHTML = '';
-    history.forEach(item => {
+    filteredHistory.forEach(item => {
         const div = document.createElement('div');
         div.className = 'card';
+        // ... (rest of rendering logic matches existing style)
         div.style.display = 'flex';
         div.style.justifyContent = 'space-between';
         div.style.alignItems = 'center';
@@ -475,6 +636,20 @@ function renderHistory() {
             <div>
                 <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 5px;">${item.date} • ${item.time || ''}</span>
                 <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-main);">Semester ${item.sem}</h3>
+                
+                ${item.name || item.rollNo ? `
+                <div style="margin-top: 4px; font-size: 0.8rem; color: var(--text-main); font-weight: 500;">
+                    ${item.name ? item.name : ''} 
+                    ${item.rollNo ? `<span style="color: var(--primary-color); font-family: monospace; margin-left: 5px;">${item.rollNo}</span>` : ''}
+                </div>
+                ` : ''}
+                
+                ${item.year || item.section ? `
+                <div style="margin-top: 2px; font-size: 0.75rem; color: var(--text-muted);">
+                    ${item.year ? item.year + ' Year' : ''} ${item.section ? '• Section ' + item.section : ''}
+                </div>
+                ` : ''}
+
                 <div style="margin-top: 8px; display: flex; gap: 8px;">
                      <span style="font-size: 0.7rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">${item.credits || 0} Credits</span>
                 </div>
@@ -489,9 +664,11 @@ function renderHistory() {
 }
 
 function clearHistory() {
-    if (confirm('Clear all history logs?')) {
+    if (confirm('Clear all history logs? This will hide current results from this view.')) {
         localStorage.removeItem('gpa_history');
+        localStorage.setItem('history_cleared_at', Date.now()); // Mark clear time
         renderHistory();
+        updateHomePageStats();
     }
 }
 
@@ -501,13 +678,24 @@ function updateHomePageStats() {
     if (!display) return;
 
     let history = JSON.parse(localStorage.getItem('gpa_history') || '[]');
-    if (history.length === 0) {
+
+    // Filter by User
+    const userSession = sessionStorage.getItem('res_user');
+    const currentUser = userSession ? JSON.parse(userSession).rollNo : null;
+
+    const userHistory = history.filter(item => {
+        if (!currentUser) return true;
+        if (!item.rollNo) return true; // Include legacy
+        return item.rollNo === currentUser;
+    });
+
+    if (userHistory.length === 0) {
         display.textContent = "0.00";
         return;
     }
 
     const semesterMap = {};
-    history.forEach(item => {
+    userHistory.forEach(item => {
         if (!semesterMap[item.sem] || item.timestamp > semesterMap[item.sem].timestamp) {
             semesterMap[item.sem] = item;
         }
@@ -536,3 +724,20 @@ function addCustomSubject(sem, name, credit, code) {
     saveSemesterSubjects(sem, subjects);
     return true;
 }
+
+// --- EXPOSE GLOBALS for HTML onclick access ---
+window.selectSemester = selectSemester;
+window.initiateCalculation = initiateCalculation;
+window.submitDetailsAndCalculate = submitDetailsAndCalculate;
+window.closeModal = closeModal;
+window.downloadReportDirectly = downloadReportDirectly;
+window.togglePrevStats = togglePrevStats;
+window.resetApp = resetApp;
+window.addCustomSubject = addCustomSubject;
+window.saveSemesterSubjects = saveSemesterSubjects;
+window.getSubjects = getSubjects;
+window.renderHistory = renderHistory;
+window.clearHistory = clearHistory;
+// Admin specifics
+window.saveSubject = window.saveSubject || null; // Will be defined in admin script if needed, but here we just export what we have
+window.loadAdminSubjects = window.loadAdminSubjects || null;

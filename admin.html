@@ -84,18 +84,9 @@
                     details:</p>
                 <div
                     style="background: rgba(47, 128, 237, 0.1); border: 1px solid var(--primary-color); border-radius: 10px; padding: 20px; margin-bottom: 25px; text-align: left;">
-                    <div style="margin-bottom: 10px;">
-                        <span style="color: var(--text-muted); font-size: 0.8rem;">Username:</span>
-                        <div
-                            style="color: var(--text-main); font-weight: 600; font-family: monospace; margin-top: 4px;">
-                            kalai</div>
-                    </div>
-                    <div>
-                        <span style="color: var(--text-muted); font-size: 0.8rem;">Password:</span>
-                        <div
-                            style="color: var(--text-main); font-weight: 600; font-family: monospace; margin-top: 4px;">
-                            kalai100</div>
-                    </div>
+                    <p style="color: var(--text-main); font-size: 0.9rem; margin: 0;">
+                        Please contact the system administrator to reset your password.
+                    </p>
                 </div>
                 <button onclick="closeForgotPassword()" class="btn btn-primary" style="width: 100%;">Got It!</button>
             </div>
@@ -112,23 +103,42 @@
 
     </div>
 
-    <script src="script.js"></script>
-    <script>
-        function handleLogin(e) {
-            e.preventDefault();
-            const name = document.getElementById('admin-name').value;
-            const pass = document.getElementById('admin-pass').value;
+    <script type="module">
+        import { loginAdmin } from './firebase-config.js';
 
-            // Simple mock auth
-            if (name === 'kalai' && pass === 'kalai100') {
-                localStorage.setItem('isAdmin', 'true');
-                window.location.href = 'dashboard.html';
-            } else {
-                alert('Invalid Credentials!');
+        window.handleLogin = async function (e) {
+            e.preventDefault();
+            const name = document.getElementById('admin-name').value.trim();
+            const pass = document.getElementById('admin-pass').value.trim();
+            const btn = document.querySelector('button[type="submit"]');
+
+            if (!name || !pass) {
+                alert("Please enter both username and password.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = 'Verifying...';
+
+            try {
+                const success = await loginAdmin(name, pass);
+                if (success) {
+                    localStorage.setItem('isAdmin', 'true');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('Invalid Credentials!');
+                    btn.disabled = false;
+                    btn.innerHTML = 'LOG IN <span style="margin-left:5px;">→</span>';
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Login failed. Check console.");
+                btn.disabled = false;
+                btn.innerHTML = 'LOG IN <span style="margin-left:5px;">→</span>';
             }
         }
 
-        function showPassword() {
+        window.showPassword = function () {
             const passInput = document.getElementById('admin-pass');
             const eyeIcon = document.getElementById('eye-icon');
             passInput.type = 'text';
@@ -138,7 +148,7 @@
             eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" fill="none"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
         }
 
-        function hidePassword() {
+        window.hidePassword = function () {
             const passInput = document.getElementById('admin-pass');
             const eyeIcon = document.getElementById('eye-icon');
             passInput.type = 'password';
@@ -148,11 +158,11 @@
             eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none"></path><circle cx="12" cy="12" r="3" fill="none"></circle>';
         }
 
-        function showForgotPassword() {
+        window.showForgotPassword = function () {
             document.getElementById('forgot-pass-modal').style.display = 'flex';
         }
 
-        function closeForgotPassword() {
+        window.closeForgotPassword = function () {
             document.getElementById('forgot-pass-modal').style.display = 'none';
         }
     </script>

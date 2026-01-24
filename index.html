@@ -17,10 +17,33 @@
     <div class="container">
         <!-- Main Card -->
         <div class="card landing-card">
+            <div style="position: absolute; top: 20px; right: 20px;">
+                <button id="logout-btn" class="btn btn-secondary"
+                    style="padding: 8px 12px; font-size: 0.8rem; border-color: #ff5252; color: #ff5252;">Logout</button>
+            </div>
+
             <div class="header-bg" style="text-align: center; margin-bottom: 2rem;">
                 <h1 class="page-title" style="margin-bottom: 0.5rem;">CGPA Calculator</h1>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Select your semester to begin</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Welcome, <span id="user-display-name"
+                        style="color: var(--primary-color); font-weight: bold;">Student</span></p>
+                <p style="color: var(--text-muted); font-size: 0.8rem;">Select your semester to begin</p>
             </div>
+
+            <script>
+                // Auth Check
+                const userSession = sessionStorage.getItem('res_user');
+                if (!userSession) {
+                    window.location.href = 'login.html';
+                } else {
+                    const user = JSON.parse(userSession);
+                    document.getElementById('user-display-name').textContent = user.name;
+                }
+
+                document.getElementById('logout-btn').onclick = () => {
+                    sessionStorage.removeItem('res_user');
+                    window.location.href = 'login.html';
+                };
+            </script>
 
             <!-- Semester Grid -->
             <div class="sem-grid">
@@ -56,7 +79,7 @@
 
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 
 </html>
