@@ -166,27 +166,42 @@ window.getSubjects = getSubjects;
 window.saveSemesterSubjects = saveSemesterSubjects;
 
 // Helper: Get Subjects (LS Override > Default + Custom Legacy)
-// Helper: Get Subjects (Firebase-first, localStorage fallback)
+// Helper: Get Subjects (localStorage-first for speed, Firebase in background)
 async function getSubjects(sem) {
     // 0. Static Override for Semester 8 (Lock to 12-credit Project)
     if (sem == 8) {
         return subjectData[8];
     }
 
-    // 1. Try Firebase first
+    // 1. Check localStorage FIRST for instant loading
+    const override = localStorage.getItem(`subjects_sem_${sem}`);
+    if (override) {
+        const cachedSubjects = JSON.parse(override);
+
+        // Return cached data immediately for fast display
+        // Then fetch from Firebase in background to update cache
+        getSubjectsFromFirebase(sem).then(firebaseSubjects => {
+            if (firebaseSubjects && firebaseSubjects.length > 0) {
+                // Silently update cache if Firebase has different data
+                const cachedStr = JSON.stringify(cachedSubjects);
+                const firebaseStr = JSON.stringify(firebaseSubjects);
+                if (cachedStr !== firebaseStr) {
+                    localStorage.setItem(`subjects_sem_${sem}`, firebaseStr);
+                }
+            }
+        }).catch(e => console.log('Background Firebase fetch failed'));
+
+        return cachedSubjects;
+    }
+
+    // 2. If no cache, try Firebase (first-time load only)
     try {
         const firebaseSubjects = await getSubjectsFromFirebase(sem);
         if (firebaseSubjects && firebaseSubjects.length > 0) {
             return firebaseSubjects;
         }
     } catch (e) {
-        console.log('Firebase fetch failed, using localStorage');
-    }
-
-    // 2. Fallback to localStorage
-    const override = localStorage.getItem(`subjects_sem_${sem}`);
-    if (override) {
-        return JSON.parse(override);
+        console.log('Firebase fetch failed, using defaults');
     }
 
     // 3. Use Default Data
