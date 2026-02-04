@@ -152,6 +152,133 @@ export async function loginAdmin(username, password) {
 }
 
 /**
+ * DELETE ALL STUDENTS (Use with caution)
+ * Used to clean up bad uploads.
+ */
+import { deleteDoc } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+export async function deleteAllStudents() {
+    try {
+        const snapshot = await getDocs(collection(db, STUDENTS_COLLECTION));
+        const total = snapshot.size;
+        let count = 0;
+
+        // Helper to facilitate parallel deletion in chunks could be better, but sequential is safer for now
+        // or Promise.all in batches.
+        const deletePromises = [];
+
+        snapshot.forEach((doc) => {
+            deletePromises.push(deleteDoc(doc.ref));
+        });
+
+        await Promise.all(deletePromises);
+        console.log(`Deleted ${deletePromises.length} students.`);
+        return deletePromises.length;
+    } catch (e) {
+        console.error("Error deleting all students:", e);
+        throw e;
+    }
+}
+
+/**
+ * BULK UPDATE YEAR
+ * Used to promote all students to a specific year.
+ */
+export async function updateAllStudentYears(newYear) {
+    if (!newYear) return 0;
+    try {
+        const snapshot = await getDocs(collection(db, STUDENTS_COLLECTION));
+        const updatePromises = [];
+
+        snapshot.forEach((doc) => {
+            updatePromises.push(updateDoc(doc.ref, {
+                year: newYear,
+                lastUpdated: new Date().toISOString()
+            }));
+        });
+
+        await Promise.all(updatePromises);
+        console.log(`Updated ${updatePromises.length} students to Year ${newYear}.`);
+        return updatePromises.length;
+    } catch (e) {
+        console.error("Error updating student years:", e);
+        throw e;
+    }
+}
+
+/**
+ * DELETE STUDENT RANGE (OR SINGLE)
+ * Safely delete specific students.
+ */
+export async function deleteStudentRange(startRoll, endRoll) {
+    if (!startRoll) return 0;
+
+    const start = startRoll.trim().toUpperCase();
+    // If end is provided, use it. If not, end = start (Single Delete)
+    const end = endRoll ? endRoll.trim().toUpperCase() : start;
+
+    try {
+        const snapshot = await getDocs(collection(db, STUDENTS_COLLECTION));
+        const deletePromises = [];
+        let count = 0;
+
+        snapshot.forEach((doc) => {
+            const roll = doc.id;
+            if (roll >= start && roll <= end) {
+                deletePromises.push(deleteDoc(doc.ref));
+                count++;
+            }
+        });
+
+        await Promise.all(deletePromises);
+        console.log(`Deleted ${count} students in range ${start}-${end}.`);
+        return count;
+    } catch (e) {
+        console.error("Error deleting student range:", e);
+        throw e;
+    }
+}
+
+/**
+ * BULK UPDATE RANGE
+ * Update Year/Section for a specific range of Roll Numbers.
+ */
+export async function updateStudentRange(startRoll, endRoll, newYear, newSection) {
+    if (!startRoll || !endRoll) return 0;
+
+    // Normalize to handle case sensitivity if needed, though usually uppercase
+    const start = startRoll.trim().toUpperCase();
+    const end = endRoll.trim().toUpperCase();
+
+    try {
+        const snapshot = await getDocs(collection(db, STUDENTS_COLLECTION));
+        const updatePromises = [];
+        let count = 0;
+
+        snapshot.forEach((doc) => {
+            const roll = doc.id; // Using doc ID which is usually roll number
+            // String comparison is tricky if formats differ length, but assuming consistent format (e.g. 24CS001)
+            // Ideally we should strictly compare.
+            if (roll >= start && roll <= end) {
+                const updates = { lastUpdated: new Date().toISOString() };
+                if (newYear) updates.year = newYear;
+                if (newSection) updates.section = newSection;
+
+                updatePromises.push(updateDoc(doc.ref, updates));
+                count++;
+            }
+        });
+
+        await Promise.all(updatePromises);
+        console.log(`Updated ${count} students in range ${start}-${end}.`);
+        return count;
+    } catch (e) {
+        console.error("Error updating student range:", e);
+        throw e;
+    }
+}
+
+/**
  * Save Result: Updates the student's result record in Firestore.
  * @param {string} rollNo 
  * @param {number} sem 
@@ -203,21 +330,15 @@ export async function getAllStudentResults() {
     try {
         const studentsRef = collection(db, STUDENTS_COLLECTION);
 
-        // Query only students who have a currentCGPA greater than 0
-        // This filters out students without any calculations
-        const q = query(studentsRef, where("currentCGPA", ">", "0.00"));
-
-        const querySnapshot = await getDocs(q);
+        // Fetch ALL students, regardless of CGPA
+        const querySnapshot = await getDocs(studentsRef);
         const students = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            // Additional check: only include if they have actual results
-            if (data.results && Object.keys(data.results).length > 0) {
-                students.push({ id: doc.id, ...data });
-            }
+            students.push({ id: doc.id, ...data });
         });
 
-        console.log(`Loaded ${students.length} students with results (optimized query)`);
+        console.log(`Loaded ${students.length} students.`);
         return students;
     } catch (error) {
         console.error("Error fetching students:", error);

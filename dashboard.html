@@ -37,11 +37,28 @@
             </a>
         </div>
 
+        <style>
+            .nav-tabs-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            @media (max-width: 768px) {
+                .nav-tabs-container {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+
         <!-- View Toggle -->
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <div class="nav-tabs-container">
             <button class="btn btn-primary" onclick="showSection('results')" id="btn-results">Student Results</button>
             <button class="btn btn-secondary" onclick="showSection('subjects')" id="btn-subjects">Manage
                 Subjects</button>
+            <button class="btn btn-secondary" onclick="showSection('students')" id="btn-students">Manage
+                Students</button>
         </div>
 
         <!-- Student Results Section -->
@@ -184,11 +201,166 @@
 
         </div>
 
+        <!-- Manage Students Section -->
+        <div id="section-students" style="display: none;">
+
+            <!-- Single Student Add -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px; font-size: 1rem;">Add Single Student</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">Roll Number</label>
+                        <input type="text" id="single-roll" placeholder="e.g. 21CSF01"
+                            style="text-transform: uppercase;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">Name</label>
+                        <input type="text" id="single-name" placeholder="Name">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">Year</label>
+                        <select id="single-year">
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">Section</label>
+                        <select id="single-section">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="addSingleStudent()" class="btn btn-primary" id="add-single-btn">Add Student</button>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 1rem;">Bulk Student Upload</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                    Upload a CSV file to add multiple students at once.<br>
+                    <strong>Format required:</strong> <code>rollNo, name, year, section</code> (Header row optional but
+                    recommended to skip if present)
+                </p>
+
+                <div
+                    style="margin-bottom: 20px; padding: 20px; border: 2px dashed var(--border-color); border-radius: 12px; text-align: center;">
+                    <input type="file" id="csv-file-input" accept=".csv" style="display: none;"
+                        onchange="updateFileName()">
+                    <label for="csv-file-input" class="btn btn-secondary" style="cursor: pointer;">
+                        Choose CSV File
+                    </label>
+                    <span id="file-name"
+                        style="display: block; margin-top: 10px; color: var(--text-main); font-size: 0.9rem;"></span>
+                </div>
+
+                <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <label
+                        style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="has-header" checked
+                            style="width: 16px; height: 16px; accent-color: var(--primary-color);">
+                        <span>Skip first row (Header)</span>
+                    </label>
+                    <label
+                        style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="has-serial" checked
+                            style="width: 16px; height: 16px; accent-color: var(--primary-color);">
+                        <span>First column is Serial Number (Ignore it)</span>
+                    </label>
+                </div>
+
+                <button onclick="processCSV()" class="btn btn-primary" id="upload-btn" disabled>
+                    Upload Students
+                </button>
+
+                <!-- Progress Log -->
+                <div id="upload-log"
+                    style="margin-top: 20px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: none;">
+                </div>
+            </div>
+
+            <!-- Student Maintenance -->
+            <div class="card" style="margin-bottom: 20px; border: 1px solid var(--primary-color);">
+                <h3 style="margin-bottom: 10px; font-size: 1rem; color: var(--primary-color);">Student Maintenance</h3>
+
+                <!-- Bulk Update Range -->
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 0.9rem; font-weight: 500; display: block; margin-bottom: 10px;">Bulk Update
+                        (By Range)</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">From Roll No</label>
+                            <input type="text" id="range-start" placeholder="e.g. 24CS001"
+                                style="text-transform: uppercase;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">To Roll No</label>
+                            <input type="text" id="range-end" placeholder="e.g. 24CS060"
+                                style="text-transform: uppercase;">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <select id="range-year">
+                            <option value="">No Change (Year)</option>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select>
+                        <select id="range-section">
+                            <option value="">No Change (Section)</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                            <option value="D">Section D</option>
+                            <option value="E">Section E</option>
+                        </select>
+                    </div>
+                    <button onclick="handleRangeUpdate()" class="btn btn-primary" style="width: 100%;">Update
+                        Selection</button>
+                </div>
+
+
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card" style="border: 1px solid #ff5252;">
+                <h3 style="margin-bottom: 10px; font-size: 1rem; color: #ff5252;">Danger Zone</h3>
+
+                <!-- Range Delete -->
+                <div style="margin-bottom: 20px;">
+                    <label
+                        style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Delete
+                        Specific Range</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="delete-start" placeholder="From Roll (Required)"
+                            style="text-transform: uppercase; flex: 1;">
+                        <input type="text" id="delete-end" placeholder="To Roll (Optional)"
+                            style="text-transform: uppercase; flex: 1;">
+                    </div>
+                    <button onclick="handleRangeDelete()" class="btn"
+                        style="background: rgba(255, 82, 82, 0.1); color: #ff5252; border: 1px solid #ff5252; width: 100%;">
+                        Delete Selected Range
+                    </button>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">
+                        * Leave "To Roll" empty to delete a single student.
+                    </p>
+                </div>
+
+
+            </div>
+        </div>
+
         <!-- Load script.js first to get access to getSubjects and saveSemesterSubjects -->
         <script type="module" src="script.js"></script>
 
         <script type="module">
-            import { getAllStudentResults } from './firebase-config.js';
+            import { getAllStudentResults, createStudent, updateStudentRange, deleteStudentRange } from './firebase-config.js';
 
             // --- Export Functions ---
 
@@ -199,9 +371,35 @@
                 // Helper to quote strings
                 const q = (s) => `"${(s || '').toString().replace(/"/g, '""')}"`;
 
-                const csvContent = rows.map(row => {
+                const csvContent = rows.map((row, rowIndex) => {
                     const cells = Array.from(row.querySelectorAll('th, td'));
-                    return cells.map(cell => q(cell.innerText)).join(',');
+                    return cells.map((cell, colIndex) => {
+                        let text = cell.innerText.trim();
+
+                        // Skip header
+                        if (rowIndex === 0) return q(text);
+
+                        // Year Column (Index 2): "2 yr" -> "2"
+                        if (colIndex === 2) {
+                            const val = parseFloat(text);
+                            return isNaN(val) ? q(text) : q(val);
+                        }
+
+                        // Last Updated Column (Index 7): Format to 12-hour time
+                        if (colIndex === 7) {
+                            // Try to parse the date string from the table
+                            const date = new Date(text);
+                            if (!isNaN(date.getTime())) {
+                                // Format: "M/D/YYYY, 9:35 PM"
+                                return q(date.toLocaleString('en-US', {
+                                    year: 'numeric', month: 'numeric', day: 'numeric',
+                                    hour: 'numeric', minute: 'numeric', hour12: true
+                                }));
+                            }
+                        }
+
+                        return q(text);
+                    }).join(',');
                 }).join('\n');
 
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -306,21 +504,27 @@
             window.showSection = function (section) {
                 document.getElementById('section-results').style.display = section === 'results' ? 'block' : 'none';
                 document.getElementById('section-subjects').style.display = section === 'subjects' ? 'block' : 'none';
+                document.getElementById('section-students').style.display = section === 'students' ? 'block' : 'none';
 
                 // Button Styles
                 const btnResults = document.getElementById('btn-results');
                 const btnSubjects = document.getElementById('btn-subjects');
+                const btnStudents = document.getElementById('btn-students');
 
-                if (btnResults && btnSubjects) {
-                    if (section === 'results') {
-                        btnResults.className = 'btn btn-primary';
-                        btnSubjects.className = 'btn btn-secondary';
-                        window.loadResults();
-                    } else {
-                        btnResults.className = 'btn btn-secondary';
-                        btnSubjects.className = 'btn btn-primary';
-                        if (window.loadAdminSubjects) window.loadAdminSubjects();
-                    }
+                // Reset all
+                if (btnResults) btnResults.className = 'btn btn-secondary';
+                if (btnSubjects) btnSubjects.className = 'btn btn-secondary';
+                if (btnStudents) btnStudents.className = 'btn btn-secondary';
+
+                // Set active
+                if (section === 'results') {
+                    if (btnResults) btnResults.className = 'btn btn-primary';
+                    window.loadResults();
+                } else if (section === 'subjects') {
+                    if (btnSubjects) btnSubjects.className = 'btn btn-primary';
+                    if (window.loadAdminSubjects) window.loadAdminSubjects();
+                } else if (section === 'students') {
+                    if (btnStudents) btnStudents.className = 'btn btn-primary';
                 }
             }
 
@@ -672,6 +876,7 @@
             }
 
             // 7. Reset
+            // 7. Reset
             window.resetForm = function () {
                 document.getElementById('new-subj-name').value = '';
                 document.getElementById('new-subj-code').value = '';
@@ -681,6 +886,235 @@
                 document.getElementById('form-title').textContent = "Add New Subject";
                 document.getElementById('save-btn').textContent = "Add to Registry";
                 document.getElementById('cancel-btn').style.display = 'none';
+            }
+
+            // --- CSV Upload Logic ---
+
+            window.updateFileName = function () {
+                const input = document.getElementById('csv-file-input');
+                const nameSpan = document.getElementById('file-name');
+                const btn = document.getElementById('upload-btn');
+
+                if (input.files && input.files.length > 0) {
+                    nameSpan.textContent = input.files[0].name;
+                    btn.disabled = false;
+                } else {
+                    nameSpan.textContent = "";
+                    btn.disabled = true;
+                }
+            }
+
+            window.processCSV = function () {
+                const input = document.getElementById('csv-file-input');
+                const hasHeader = document.getElementById('has-header').checked;
+                const hasSerial = document.getElementById('has-serial').checked; // Check this
+                const logDiv = document.getElementById('upload-log');
+                const btn = document.getElementById('upload-btn');
+
+                if (!input.files || input.files.length === 0) return;
+
+                const file = input.files[0];
+                const reader = new FileReader();
+
+                btn.disabled = true;
+                btn.textContent = "Processing...";
+                logDiv.style.display = 'block';
+                logDiv.innerHTML = '<div>Starting upload...</div>';
+
+                reader.onload = async function (e) {
+                    const text = e.target.result;
+                    const lines = text.split(/\r\n|\n/);
+
+                    let successCount = 0;
+                    let failCount = 0;
+                    let startIndex = hasHeader ? 1 : 0;
+
+                    for (let i = startIndex; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+
+                        const parts = line.split(',');
+
+                        // Handle column offsets based on checkbox
+                        let rollNo, name, year, section;
+
+                        // Clean parts
+                        const cleanParts = parts.map(p => p.trim());
+
+                        if (hasSerial) {
+                            // Format: SerialNo, RollNo, Name, Year, Section
+                            if (cleanParts.length < 3) {
+                                logDiv.innerHTML += `<div style="color: yellow;">Skipping Line ${i + 1}: Not enough columns (Serial mode)</div>`;
+                                continue;
+                            }
+                            rollNo = cleanParts[1];
+                            name = cleanParts[2];
+                            year = cleanParts[3] || "1";
+                            section = cleanParts[4] || "A";
+                        } else {
+                            // Format: RollNo, Name, Year, Section
+                            if (cleanParts.length < 2) {
+                                logDiv.innerHTML += `<div style="color: yellow;">Skipping Line ${i + 1}: Not enough columns</div>`;
+                                continue;
+                            }
+                            rollNo = cleanParts[0];
+                            name = cleanParts[1];
+                            year = cleanParts[2] || "1";
+                            section = cleanParts[3] || "A";
+                        }
+
+                        // Basic Validation: Attempt to fix swapped if RollNo looks like a Name and Name looks like a RollNo
+                        // (RollNo usually has digits, Name usually doesn't start with digits)
+                        // If RollNo has NO digits, and Name HAS digits, swap them? 
+                        // Let's stick to strict column ordering based on user input for now to avoid magic errors.
+
+                        if (!rollNo) {
+                            logDiv.innerHTML += `<div style="color: #ff5252;">Skipping Line ${i + 1}: Missing Roll No</div>`;
+                            continue;
+                        }
+
+                        try {
+                            const result = await createStudent(rollNo, name, year, section);
+                            if (result) {
+                                logDiv.innerHTML += `<div style="color: var(--accent-green);">Success: ${name} (${rollNo})</div>`;
+                                successCount++;
+                            } else {
+                                logDiv.innerHTML += `<div style="color: #ff5252;">Failed: ${name} (${rollNo}) - Check Console</div>`;
+                                failCount++;
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            logDiv.innerHTML += `<div style="color: #ff5252;">Error: ${name} (${rollNo})</div>`;
+                            failCount++;
+                        }
+
+                        // Auto-scroll to bottom
+                        logDiv.scrollTop = logDiv.scrollHeight;
+                    }
+
+                    logDiv.innerHTML += `<div style="margin-top: 10px; font-weight: bold; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.1);">Upload Complete. Success: ${successCount}, Failed: ${failCount}</div>`;
+                    btn.textContent = "Upload Complete";
+
+                    // Re-enable if they want to upload another file? No, encourage refresh or re-select.
+                    setTimeout(() => {
+                        btn.textContent = "Upload Students";
+                        // Keep disabled until file changes to prevent double submission of same file logic if we wanted.
+                        // But for now, let's leave it.
+                    }, 3000);
+                };
+
+                reader.readAsText(file);
+            }
+
+            // --- Single Student Add Logic ---
+            window.addSingleStudent = async function () {
+                const rollNo = document.getElementById('single-roll').value.trim().toUpperCase();
+                const name = document.getElementById('single-name').value.trim();
+                const year = document.getElementById('single-year').value;
+                const section = document.getElementById('single-section').value;
+                const btn = document.getElementById('add-single-btn');
+
+                if (!rollNo || !name) {
+                    alert("Please enter both Roll Number and Name.");
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.textContent = "Adding...";
+
+                try {
+                    const success = await createStudent(rollNo, name, year, section);
+                    if (success) {
+                        alert(`Student ${name} (${rollNo}) added successfully!`);
+                        // Clear inputs
+                        document.getElementById('single-roll').value = '';
+                        document.getElementById('single-name').value = '';
+                    } else {
+                        alert("Failed to add student. Check console for details.");
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert("Error adding student.");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "Add Student";
+                }
+            }
+
+
+            // --- Range Delete Logic ---
+            window.handleRangeDelete = async function () {
+                const start = document.getElementById('delete-start').value.trim().toUpperCase();
+                const end = document.getElementById('delete-end').value.trim().toUpperCase();
+
+                if (!start) {
+                    alert("Please enter at least the Start Roll number.");
+                    return;
+                }
+
+                const msg = end
+                    ? `Are you sure you want to delete students from ${start} to ${end}?`
+                    : `Are you sure you want to delete student ${start}?`;
+
+                if (confirm(msg)) {
+                    const btn = document.querySelector('button[onclick="handleRangeDelete()"]');
+                    const originalText = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = "Deleting...";
+
+                    try {
+                        const count = await deleteStudentRange(start, end);
+                        if (count > 0) {
+                            alert(`Deleted ${count} students.`);
+                            // Validate if needed
+                        } else {
+                            alert("No students found in that range.");
+                        }
+                    } catch (e) {
+                        alert("Error deleting range.");
+                        console.error(e);
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    }
+                }
+            }
+
+
+            // --- Range Update Logic ---
+            window.handleRangeUpdate = async function () {
+                const start = document.getElementById('range-start').value.trim().toUpperCase();
+                const end = document.getElementById('range-end').value.trim().toUpperCase();
+                const year = document.getElementById('range-year').value;
+                const section = document.getElementById('range-section').value;
+                const btn = document.querySelector('button[onclick="handleRangeUpdate()"]');
+
+                if (!start || !end) {
+                    alert("Please enter Start and End Roll Numbers.");
+                    return;
+                }
+                if (!year && !section) {
+                    alert("Please select at least a Year or Section to update.");
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.textContent = "Updating...";
+
+                try {
+                    const count = await updateStudentRange(start, end, year, section);
+                    if (count > 0) {
+                        alert(`Success! Updated ${count} students in range ${start} - ${end}.`);
+                    } else {
+                        alert(`No students found in that range.`);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert("Error updating range.");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "Update Selection";
+                }
             }
         </script>
 </body>
