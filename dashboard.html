@@ -106,6 +106,17 @@
                         style="width: auto; padding: 8px 15px; font-size: 0.8rem;">CSV</button>
                     <button onclick="downloadPDF()" class="btn btn-primary"
                         style="width: auto; padding: 8px 15px; font-size: 0.8rem;">PDF</button>
+
+                    <!-- Subject Wise Report Controls -->
+                    <div id="subject-report-controls"
+                        style="display: none; gap: 10px; padding-left: 10px; border-left: 1px solid var(--glass-border); margin-left: 5px;">
+                        <button onclick="downloadSubjectReport('csv')" class="btn"
+                            style="background: #28a745; color: white; border: none; width: auto; padding: 8px 15px; font-size: 0.8rem;"
+                            title="Download Detailed Subject Grade Report (CSV)">Detailed CSV</button>
+                        <button onclick="downloadSubjectReport('pdf')" class="btn"
+                            style="background: #dc3545; color: white; border: none; width: auto; padding: 8px 15px; font-size: 0.8rem;"
+                            title="Download Detailed Subject Grade Report (PDF)">Detailed PDF</button>
+                    </div>
                 </div>
             </div>
 
@@ -490,6 +501,174 @@
                 });
             }
 
+            window.downloadSubjectReport = async function (type) {
+                const sem = document.getElementById('filter-semester').value;
+                if (!sem) { alert("Please select a semester first."); return; }
+
+                // 1. Get Subjects for Headers
+                let subjects = [];
+                if (window.getSubjects) {
+                    subjects = await window.getSubjects(sem);
+                }
+
+                if (!subjects || subjects.length === 0) {
+                    alert("No subjects found for this semester registry. Please add subjects first in 'Manage Subjects'.");
+                    return;
+                }
+
+                // 2. Get Students (Filtered)
+                // We reuse the current table logic or re-fetch. Re-fetching and filtering ensures clean data.
+                const students = await getAllStudentResults();
+                const filterYear = document.getElementById('filter-year').value;
+                const filterSection = document.getElementById('filter-section').value;
+
+                const filteredStudents = students.filter(student => {
+                    const matchYear = filterYear ? (student.year == filterYear) : true;
+                    const matchSection = filterSection ? (student.section == filterSection) : true;
+                    return matchYear && matchSection;
+                }).sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+
+                if (filteredStudents.length === 0) {
+                    alert("No students found matching current filters.");
+                    return;
+                }
+
+                // 3. Prepare Data Structure
+                // Header: S.No, Name, Roll No, Year, Section, [Sub1], [Sub2]...
+                const header = ["S.No", "Name", "Roll No", "Year", "Section"];
+                subjects.forEach(s => header.push(s.name)); // Or s.code + " - " + s.name
+
+                const rows = [];
+                filteredStudents.forEach((student, index) => {
+                    const row = [
+                        index + 1,
+                        student.name || "Unknown",
+                        student.id, // Roll No
+                        (student.year || "") + " yr",
+                        "Sec " + (student.section || ""),
+                    ];
+
+                    // Find results for this semester
+                    // student.results['sem_3'] -> { subjects: [...] }
+                    const semKey = `sem_${sem}`;
+                    const resultData = student.results && student.results[semKey] ? student.results[semKey] : null;
+                    const studentSubjects = resultData ? (resultData.subjects || []) : [];
+
+                    // For each master subject, find the grade
+                    subjects.forEach(masterSub => {
+                        const found = studentSubjects.find(s => s.code === masterSub.code);
+                        if (found) {
+                            row.push(found.grade);
+                        } else {
+                            // Not found or not attempted
+                            row.push("-");
+                        }
+                    });
+                    rows.push(row);
+                });
+
+                // 4. Generate Output
+                if (type === 'csv') {
+                    const csvContent = [
+                        header.map(h => `"${h}"`).join(','),
+                        ...rows.map(r => r.map(c => `"${c}"`).join(','))
+                    ].join('\n');
+
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `Detailed_Report_Sem_${sem}_${new Date().toISOString().slice(0, 10)}.csv`;
+                    link.click();
+
+                } else if (type === 'pdf') {
+                    if (!window.html2pdf) { alert('PDF library not ready.'); return; }
+
+                    const container = document.createElement('div');
+                    container.style.padding = "10px";
+                    container.style.background = "white";
+                    container.style.color = "black";
+
+                    const title = document.createElement('h3');
+                    title.textContent = `Detailed Report - Semester ${sem}`;
+                    title.style.textAlign = "center";
+
+                    const meta = document.createElement('p');
+                    meta.textContent = `Generated: ${new Date().toLocaleString()} | Total Students: ${filteredStudents.length}`;
+                    meta.style.textAlign = "center";
+                    meta.style.fontSize = "0.8rem";
+                    meta.style.marginBottom = "10px";
+
+                    const table = document.createElement('table');
+                    table.style.width = "100%";
+                    table.style.borderCollapse = "collapse";
+                    table.style.fontSize = "8px"; // Tiny font for many columns
+
+                    // Header Row
+                    const thead = document.createElement('thead');
+                    const trHead = document.createElement('tr');
+                    header.forEach((h, index) => { // Added index to center headers too
+                        const th = document.createElement('th');
+                        th.textContent = h;
+                        th.style.border = "1px solid #999";
+                        th.style.padding = "4px";
+                        th.style.background = "#ddd";
+                        // Center align headers except Name
+                        if (index === 1) {
+                            th.style.textAlign = "left";
+                        } else {
+                            th.style.textAlign = "center";
+                        }
+                        trHead.appendChild(th);
+                    });
+                    thead.appendChild(trHead);
+                    table.appendChild(thead);
+
+                    // Body
+                    const tbody = document.createElement('tbody');
+                    rows.forEach(r => {
+                        const tr = document.createElement('tr');
+                        // Prevent page break inside a row
+                        tr.style.pageBreakInside = "avoid";
+                        tr.style.breakInside = "avoid";
+
+                        r.forEach((c, index) => {
+                            const td = document.createElement('td');
+                            td.textContent = c;
+                            td.style.border = "1px solid #ccc";
+                            td.style.padding = "4px";
+
+                            // Center align content except Name (Index 1)
+                            if (index === 1) {
+                                td.style.textAlign = "left";
+                            } else {
+                                td.style.textAlign = "center";
+                            }
+
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+                    table.appendChild(tbody);
+
+                    container.appendChild(title);
+                    container.appendChild(meta);
+                    container.appendChild(table);
+
+                    const opt = {
+                        margin: 5,
+                        filename: `Detailed_Report_Sem_${sem}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2 },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+                        // Page break settings to handle large lists gracefully
+                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                    };
+
+                    html2pdf().set(opt).from(container).save();
+                }
+
+            }
+
             // --- Auth Logic ---
             if (localStorage.getItem('isAdmin') !== 'true') {
                 window.location.href = 'admin.html';
@@ -548,6 +727,12 @@
                 const filterYear = document.getElementById('filter-year').value;
                 const filterSection = document.getElementById('filter-section').value;
                 const filterSemester = document.getElementById('filter-semester').value;
+
+                // Toggle Detailed Report Buttons
+                const detailedControls = document.getElementById('subject-report-controls');
+                if (detailedControls) {
+                    detailedControls.style.display = filterSemester ? 'flex' : 'none';
+                }
 
                 const filteredStudents = students.filter(student => {
                     const matchYear = filterYear ? (student.year == filterYear) : true;
