@@ -4,7 +4,7 @@ A modern, user-friendly web application for calculating Semester Grade Point Ave
 
 ## ✨ Features
 
-### 📱 Core Functionality
+📱 Core Functionality
 - **Semester-wise GPA Calculation**: Calculate SGPA for semesters 1-8
 - **Multiple Subject Support**: Handle varying credit values (1-4 credits per subject)
 - **Grade Input**: Support for all grade types (O, A+, A, B+, B, C, U)
