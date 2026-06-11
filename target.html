@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Target CGPA Calculator | CGPA Calculator</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        .result-box {
+            background: rgba(47, 128, 237, 0.1);
+            border: 1px solid var(--primary-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <button class="btn btn-secondary" onclick="window.location.href='index.html'" style="padding: 8px 15px;">← Back</button>
+                <h1 style="font-size: 1.2rem; color: var(--primary-color); margin: 0;">Target CGPA</h1>
+            </div>
+
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">
+                Calculate the GPA you need in your remaining semesters to reach your goal.
+            </p>
+
+            <div class="input-group">
+                <label>Current CGPA</label>
+                <input type="number" id="current-cgpa" step="0.01" placeholder="e.g. 8.50">
+            </div>
+
+            <div class="input-group">
+                <label>Completed Credits</label>
+                <input type="number" id="completed-credits" placeholder="e.g. 60">
+            </div>
+
+            <div class="input-group">
+                <label>Target CGPA</label>
+                <input type="number" id="target-cgpa" step="0.01" placeholder="e.g. 9.00">
+            </div>
+
+            <div class="input-group">
+                <label>Remaining Credits</label>
+                <input type="number" id="remaining-credits" placeholder="e.g. 40">
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; padding: 15px;" onclick="calculateTarget()">Calculate Required GPA</button>
+
+            <div id="target-result" class="result-box">
+                <span id="target-message" style="color: var(--text-muted); font-size: 0.9rem;">Required GPA in remaining semesters:</span>
+                <span id="required-gpa" class="result-value">0.00</span>
+                <p id="target-analysis" style="font-size: 0.85rem; margin-top: 10px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pre-fill from local storage if available
+        window.onload = () => {
+            const history = JSON.parse(localStorage.getItem('gpa_history') || '[]');
+            if (history.length > 0) {
+                // Simplified: use the latest CGPA entry
+                const latest = history[0];
+                document.getElementById('current-cgpa').value = latest.result;
+                document.getElementById('completed-credits').value = latest.credits || 0;
+            }
+        };
+
+        function calculateTarget() {
+            const currentCGPA = parseFloat(document.getElementById('current-cgpa').value);
+            const completedCredits = parseFloat(document.getElementById('completed-credits').value);
+            const targetCGPA = parseFloat(document.getElementById('target-cgpa').value);
+            const remainingCredits = parseFloat(document.getElementById('remaining-credits').value);
+
+            if (isNaN(currentCGPA) || isNaN(completedCredits) || isNaN(targetCGPA) || isNaN(remainingCredits)) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            if (remainingCredits <= 0) {
+                alert("Remaining credits must be greater than 0.");
+                return;
+            }
+
+            // Total Points = CGPA * Total Credits
+            // Required Points = (Target CGPA * (Completed + Remaining)) - (Current CGPA * Completed)
+            // Required GPA = Required Points / Remaining Credits
+
+            const totalCredits = completedCredits + remainingCredits;
+            const requiredPoints = (targetCGPA * totalCredits) - (currentCGPA * completedCredits);
+            const requiredGPA = requiredPoints / remainingCredits;
+
+            const resultBox = document.getElementById('target-result');
+            const requiredGpaSpan = document.getElementById('required-gpa');
+            const analysisP = document.getElementById('target-analysis');
+
+            resultBox.style.display = 'block';
+            requiredGpaSpan.textContent = requiredGPA.toFixed(2);
+
+            if (requiredGPA > 10) {
+                requiredGpaSpan.style.color = "#ff5252";
+                analysisP.textContent = "⚠️ This target is mathematically impossible (requires > 10.00 GPA). Try a lower target.";
+                analysisP.style.color = "#ff5252";
+            } else if (requiredGPA < 0) {
+                requiredGpaSpan.textContent = "0.00";
+                analysisP.textContent = "🎉 You've already surpassed your target! You just need to maintain your performance.";
+                analysisP.style.color = "var(--accent-green)";
+            } else {
+                requiredGpaSpan.style.color = "var(--primary-color)";
+                if (requiredGPA > 9.5) {
+                    analysisP.textContent = "🔥 Tough goal! You'll need nearly perfect grades.";
+                    analysisP.style.color = "#ffab00";
+                } else {
+                    analysisP.textContent = "💪 This is achievable! Keep working hard.";
+                    analysisP.style.color = "var(--accent-green)";
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

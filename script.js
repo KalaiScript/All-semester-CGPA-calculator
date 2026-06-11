@@ -889,6 +889,57 @@ window.getSubjects = getSubjects;
 window.renderHistory = renderHistory;
 window.clearHistory = clearHistory;
 window.createStudent = createStudent;
+
+// --- NEW FEATURES: EXPORT/IMPORT ---
+
+function exportHistory() {
+    const history = localStorage.getItem('gpa_history');
+    if (!history || history === '[]') {
+        alert("No history to export.");
+        return;
+    }
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(history);
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "cgpa_history_backup.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+function importHistory() {
+    document.getElementById('import-input').click();
+}
+
+function handleImport(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            const history = JSON.parse(e.target.result);
+            if (!Array.isArray(history)) {
+                throw new Error("Invalid format: History must be an array.");
+            }
+
+            if (confirm(`Import ${history.length} history items? This will overwrite your current local history.`)) {
+                localStorage.setItem('gpa_history', JSON.stringify(history));
+                alert("History imported successfully!");
+                location.reload();
+            }
+        } catch (err) {
+            alert("Error importing history: " + err.message);
+        }
+    };
+    reader.readAsText(file);
+}
+
+window.exportHistory = exportHistory;
+window.importHistory = importHistory;
+window.handleImport = handleImport;
+
 // Admin specifics
-window.saveSubject = window.saveSubject || null; // Will be defined in admin script if needed, but here we just export what we have
+window.saveSubject = window.saveSubject || null;
 window.loadAdminSubjects = window.loadAdminSubjects || null;

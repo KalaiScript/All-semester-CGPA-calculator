@@ -25,7 +25,13 @@
                 <h1 class="page-title" style="margin-bottom: 0.5rem;">CGPA Calculator</h1>
                 <p style="color: var(--text-muted); font-size: 0.9rem;">Welcome, <span id="user-display-name"
                         style="color: var(--primary-color); font-weight: bold;">Student</span></p>
-                <p style="color: var(--text-muted); font-size: 0.8rem;">Select your semester to begin</p>
+                
+                <!-- Quick Stats -->
+                <div id="user-quick-stats" style="margin-top: 10px; display: none;">
+                    <span id="user-roll-display" style="font-size: 0.75rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px;">Roll No: ---</span>
+                </div>
+
+                <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 5px;">Select your semester to begin</p>
             </div>
 
             <script>
@@ -36,6 +42,10 @@
                 } else {
                     const user = JSON.parse(userSession);
                     document.getElementById('user-display-name').textContent = user.name;
+                    if (user.rollNo) {
+                        document.getElementById('user-quick-stats').style.display = 'block';
+                        document.getElementById('user-roll-display').textContent = `Roll No: ${user.rollNo}`;
+                    }
                 }
 
                 document.getElementById('logout-btn').onclick = () => {
@@ -68,9 +78,12 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
                     <button class="btn btn-primary" onclick="window.location.href='history.html'">View History</button>
-                    <button class="btn btn-secondary"
-                        style="border-color: var(--primary-color); color: var(--primary-color);"
-                        onclick="resetApp()">Reset</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='target.html'"
+                        style="border-color: var(--primary-color); color: var(--primary-color);">Target Calc</button>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary" style="width: 100%; border-color: #ff5252; color: #ff5252;"
+                        onclick="resetApp()">Reset All Data</button>
                 </div>
             </div>
         </div>

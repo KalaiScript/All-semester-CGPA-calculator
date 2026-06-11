@@ -15,6 +15,7 @@
 <body>
 
     <div class="container">
+        <input type="file" id="import-input" style="display: none;" accept=".json" onchange="handleImport(this)">
         <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <a href="index.html" style="color: var(--text-muted); font-size: 1.5rem;">
@@ -25,10 +26,13 @@
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
             </a>
-            <div style="text-align: right;">
+            <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
                 <h2 style="margin: 0; font-size: 1.2rem;">History</h2>
-                <a href="#" onclick="clearHistory()" style="font-size: 0.8rem; color: var(--primary-color);">Clear
-                    All</a>
+                <div style="display: flex; gap: 10px;">
+                    <a href="#" onclick="exportHistory()" style="font-size: 0.8rem; color: var(--accent-green);">Export</a>
+                    <a href="#" onclick="importHistory()" style="font-size: 0.8rem; color: var(--primary-color);">Import</a>
+                    <a href="#" onclick="clearHistory()" style="font-size: 0.8rem; color: #ff5252;">Clear All</a>
+                </div>
             </div>
         </div>
 
