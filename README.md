@@ -1,4 +1,4 @@
-# CGPA Calculator 📊
+# EduGradeX 📊
 
 A modern, user-friendly web application for calculating Semester Grade Point Average (SGPA) and Cumulative Grade Point Average (CGPA) for college students.
 

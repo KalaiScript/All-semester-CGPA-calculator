@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toggle) toggle.checked = false;
 });
 /**
- * CGPA Calculator - Core Logic
+ * EduGradeX - Core Logic
  */
 
 // Data: Subjects for each semester
